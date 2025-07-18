@@ -725,7 +725,7 @@ struct GoalSettingsView: View {
                     .animation(.easeOut(duration: 0.8), value: animateContent)
                     
                     // Goal Settings
-                    VStack(spacing: 24) {
+                    VStack(spacing: 28) {
                         // Unit Selector
                         unitSelector
                         
@@ -815,15 +815,15 @@ struct GoalSettingsView: View {
     // MARK: - View Components
     
     private var unitSelector: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             Text("Measurement Unit")
                 .font(.title2)
-                .fontWeight(.semibold)
+                .fontWeight(.bold)
                 .foregroundColor(.white)
             
             if goalUnit == .none {
                 // Show all options when no unit is selected
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
                     ForEach(GoalUnit.allCases, id: \.self) { unit in
                         Button {
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
@@ -862,23 +862,27 @@ struct GoalSettingsView: View {
                                 }
                             }
                         } label: {
-                            VStack(spacing: 8) {
+                            VStack(spacing: 10) {
                                 Text(unit.longDisplayName.isEmpty ? "Simple" : unit.longDisplayName.capitalized)
-                                    .font(.subheadline)
+                                    .font(.headline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
                                 
                                 Text(unit.displayName.isEmpty ? "✓" : unit.displayName)
-                                    .font(.caption)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
                                     .foregroundColor(.white.opacity(0.7))
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                            .padding(.vertical, 20)
+                            .padding(.horizontal, 16)
                             .background(
-                                RoundedRectangle(cornerRadius: 12)
+                                RoundedRectangle(cornerRadius: 14)
                                     .fill(.ultraThinMaterial)
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
+                                        RoundedRectangle(cornerRadius: 14)
                                             .stroke(
                                                 LinearGradient(
                                                     colors: [.white.opacity(0.2), .clear],
@@ -889,9 +893,9 @@ struct GoalSettingsView: View {
                                             )
                                     )
                             )
-                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                            .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
                         }
-                        .buttonStyle(PremiumButtonStyle())
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             } else {
@@ -967,10 +971,10 @@ struct GoalSettingsView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 18)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 18)
                         .stroke(
                             LinearGradient(
                                 colors: [.white.opacity(0.2), .clear],
@@ -981,20 +985,20 @@ struct GoalSettingsView: View {
                         )
                 )
         )
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
     
     private var targetInput: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 18) {
             Text("Target Amount")
                 .font(.title2)
-                .fontWeight(.semibold)
+                .fontWeight(.bold)
                 .foregroundColor(.white)
             
             HStack {
                 TextField("Enter target", text: $targetText)
                     .font(.title2)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .keyboardType(.decimalPad)
                     .textFieldStyle(PlainTextFieldStyle())
@@ -1004,13 +1008,13 @@ struct GoalSettingsView: View {
                     .fontWeight(.medium)
                     .foregroundColor(.white.opacity(0.7))
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 18)
             .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 14)
                     .fill(.ultraThinMaterial)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 14)
                             .stroke(
                                 LinearGradient(
                                     colors: [.white.opacity(0.2), .clear],
@@ -1021,14 +1025,14 @@ struct GoalSettingsView: View {
                             )
                     )
             )
-            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+            .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 18)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 18)
                         .stroke(
                             LinearGradient(
                                 colors: [.white.opacity(0.2), .clear],
@@ -1039,27 +1043,27 @@ struct GoalSettingsView: View {
                         )
                 )
         )
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
     
     private var descriptionInput: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 18) {
             Text("Goal Description (Optional)")
                 .font(.title2)
-                .fontWeight(.semibold)
+                .fontWeight(.bold)
                 .foregroundColor(.white)
             
             TextField("e.g., Walk 8,000 steps daily", text: $goalDescription)
-                .font(.body)
+                .font(.subheadline)
                 .foregroundColor(.white)
                 .textFieldStyle(PlainTextFieldStyle())
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 18)
                 .padding(.vertical, 16)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 14)
                         .fill(.ultraThinMaterial)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: 14)
                                 .stroke(
                                     LinearGradient(
                                         colors: [.white.opacity(0.2), .clear],
@@ -1070,14 +1074,14 @@ struct GoalSettingsView: View {
                                 )
                         )
                 )
-                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 18)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 18)
                         .stroke(
                             LinearGradient(
                                 colors: [.white.opacity(0.2), .clear],
@@ -1088,7 +1092,7 @@ struct GoalSettingsView: View {
                         )
                 )
         )
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
 
