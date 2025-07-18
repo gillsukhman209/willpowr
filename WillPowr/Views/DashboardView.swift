@@ -5,7 +5,6 @@ struct DashboardView: View {
     @EnvironmentObject private var dateManager: DateManager
     @State private var showingAddHabit = false
     @State private var selectedHabit: Habit?
-    @State private var showingHabitDetail = false
     @State private var showingDeleteConfirmation = false
     @State private var showDebugControls = false // Toggle for debug UI
     
@@ -121,14 +120,10 @@ struct DashboardView: View {
         .sheet(isPresented: $showingAddHabit) {
             AddHabitView()
         }
-        .sheet(isPresented: $showingHabitDetail, onDismiss: {
-            // Clear selected habit when sheet dismisses
-            selectedHabit = nil
-            print("🏠 Dashboard: Cleared selectedHabit on sheet dismiss")
-        }) {
-            if let habit = selectedHabit {
-                HabitDetailView(habit: habit)
-            }
+        .sheet(item: $selectedHabit, onDismiss: {
+            print("🏠 Dashboard: Sheet dismissed for habit")
+        }) { habit in
+            HabitDetailView(habit: habit)
         }
     }
 
@@ -380,7 +375,6 @@ struct DashboardView: View {
                         HabitCard(habit: habit) {
                             print("🏠 Dashboard: Selected habit '\(habit.name)' for detail view")
                             selectedHabit = habit
-                            showingHabitDetail = true
                         }
                         .padding(.horizontal, 20)
                     }
