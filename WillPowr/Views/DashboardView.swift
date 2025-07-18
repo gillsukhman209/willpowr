@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(\.habitService) private var habitService
+    @EnvironmentObject private var dateManager: DateManager
     @State private var showingAddHabit = false
     @State private var selectedHabit: Habit?
     @State private var showingHabitDetail = false
@@ -64,28 +65,130 @@ struct DashboardView: View {
                             Text("Build habits. Quit bad ones.")
                                 .font(.subheadline)
                                 .foregroundColor(.white.opacity(0.7))
+                            
+                            // Current Date Display - Always Visible
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 8) {
+                                    // Current date
+                                    Text(currentDateString)
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(dateManager.isDebugging ? .orange : .white)
+                                    
+                                    if dateManager.isDebugging {
+                                        Image(systemName: "clock.arrow.circlepath")
+                                            .font(.caption)
+                                            .foregroundColor(.orange)
+                                    }
+                                }
+                                
+                                // Debug mode indicator
+                                if dateManager.isDebugging {
+                                    Text("DEBUG MODE")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.orange)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color.orange.opacity(0.2))
+                                                .overlay(
+                                                    Capsule()
+                                                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                                                )
+                                        )
+                                } else {
+                                    Text("Today")
+                                        .font(.caption)
+                                        .foregroundColor(.white.opacity(0.6))
+                                }
+                            }
                         }
                         
                         Spacer()
                         
-                        // Debug trash button
-                        Button(action: {
-                            showingDeleteConfirmation = true
-                        }) {
-                            Image(systemName: "trash.fill")
-                                .font(.caption)
-                                .foregroundColor(.red.opacity(0.7))
-                                .frame(width: 28, height: 28)
-                                .background(
-                                    Circle()
-                                        .fill(.ultraThinMaterial)
-                                        .overlay(
+                        // Debug Controls
+                        HStack(spacing: 8) {
+                            // Date Controls
+                            if dateManager.isDebugging || true { // Always show for testing
+                                // Previous Day
+                                                            Button(action: {
+                                dateManager.moveBackwardOneDay()
+                            }) {
+                                    Image(systemName: "chevron.left")
+                                        .font(.caption)
+                                        .foregroundColor(.blue.opacity(0.8))
+                                        .frame(width: 28, height: 28)
+                                        .background(
                                             Circle()
-                                                .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                                .fill(.ultraThinMaterial)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                                )
                                         )
-                                )
+                                }
+                                .scaleEffect(0.8)
+                                
+                                // Reset to Today
+                                Button(action: {
+                                    dateManager.resetToToday()
+                                }) {
+                                    Image(systemName: dateManager.isDebugging ? "clock.arrow.circlepath" : "calendar")
+                                        .font(.caption)
+                                        .foregroundColor(dateManager.isDebugging ? .orange.opacity(0.8) : .blue.opacity(0.8))
+                                        .frame(width: 28, height: 28)
+                                        .background(
+                                            Circle()
+                                                .fill(.ultraThinMaterial)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke((dateManager.isDebugging ? Color.orange : Color.blue).opacity(0.3), lineWidth: 1)
+                                                )
+                                        )
+                                }
+                                .scaleEffect(0.8)
+                                
+                                // Next Day
+                                                            Button(action: {
+                                dateManager.moveForwardOneDay()
+                            }) {
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.blue.opacity(0.8))
+                                        .frame(width: 28, height: 28)
+                                        .background(
+                                            Circle()
+                                                .fill(.ultraThinMaterial)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                                )
+                                        )
+                                }
+                                .scaleEffect(0.8)
+                            }
+                            
+                            // Debug trash button
+                            Button(action: {
+                                showingDeleteConfirmation = true
+                            }) {
+                                Image(systemName: "trash.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.red.opacity(0.7))
+                                    .frame(width: 28, height: 28)
+                                    .background(
+                                        Circle()
+                                            .fill(.ultraThinMaterial)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                            )
+                                    )
+                            }
+                            .scaleEffect(0.8)
                         }
-                        .scaleEffect(0.8)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -313,7 +416,7 @@ struct DashboardView: View {
     // MARK: - Helper Methods
     
     private var greetingText: String {
-        let hour = Calendar.current.component(.hour, from: Date())
+        let hour = Calendar.current.component(.hour, from: dateManager.currentDate)
         switch hour {
         case 5..<12:
             return "Good morning"
@@ -324,6 +427,18 @@ struct DashboardView: View {
         default:
             return "Good night"
         }
+    }
+    
+    private var currentDateString: String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEE, MMM d"
+        return dateFormatter.string(from: dateManager.currentDate)
+    }
+    
+    private var currentDateWithDayString: String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEEE, MMM d, yyyy"
+        return dateFormatter.string(from: dateManager.currentDate)
     }
     
     private func refreshHabits() async {

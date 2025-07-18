@@ -5,6 +5,7 @@ struct HabitCard: View {
     let onTap: () -> Void
     
     @Environment(\.habitService) private var habitService
+    @EnvironmentObject private var dateManager: DateManager
     @State private var isPressed = false
     @State private var showingSuccess = false
     @State private var showingConfirmation = false
@@ -231,8 +232,8 @@ struct HabitCard: View {
             .shadow(color: actionButtonShadow, radius: 8, x: 0, y: 4)
         }
         .buttonStyle(PlainButtonStyle())
-        .disabled(!habit.canCompleteToday && habit.habitType == .build)
-        .opacity((!habit.canCompleteToday && habit.habitType == .build) ? 0.6 : 1.0)
+        .disabled(!habit.canComplete(on: dateManager.currentDate) && habit.habitType == .build)
+        .opacity((!habit.canComplete(on: dateManager.currentDate) && habit.habitType == .build) ? 0.6 : 1.0)
         .overlay(
             successOverlay
         )

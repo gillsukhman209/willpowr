@@ -183,6 +183,34 @@ struct PremiumButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Premium Text Field Style
+
+struct PremiumTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.2), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+    }
+}
+
 // MARK: - Custom Card Style
 
 struct PremiumCardStyle: ViewModifier {

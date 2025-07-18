@@ -20,9 +20,21 @@ struct AddHabitView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Background
-                Color.black
-                    .ignoresSafeArea()
+                // Premium Background with Gradient
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.05, green: 0.05, blue: 0.15),
+                        Color(red: 0.1, green: 0.1, blue: 0.2),
+                        Color(red: 0.15, green: 0.1, blue: 0.25),
+                        Color.black
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                
+                // Floating orbs for depth
+                FloatingOrbs()
                 
                 if let habitService = habitService {
                     mainContent(habitService: habitService)
@@ -36,12 +48,13 @@ struct AddHabitView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white.opacity(0.8))
+                    .fontWeight(.medium)
                 }
             }
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 0.6)) {
+            withAnimation(.easeInOut(duration: 0.8)) {
                 animateContent = true
             }
         }
@@ -70,7 +83,7 @@ struct AddHabitView: View {
     @ViewBuilder
     private func mainContent(habitService: HabitService) -> some View {
         ScrollView {
-            LazyVStack(spacing: 24) {
+            LazyVStack(spacing: 32) {
                 // Header
                 headerSection
                 
@@ -87,16 +100,16 @@ struct AddHabitView: View {
                 // Toggle Button
                 toggleButton
                 
-                Spacer(minLength: 100)
+                Spacer(minLength: 120)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
+            .padding(.horizontal, 24)
+            .padding(.top, 32)
         }
     }
     
     @ViewBuilder
     private var errorContent: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 60))
                 .foregroundColor(.red)
@@ -108,24 +121,75 @@ struct AddHabitView: View {
             
             Text("Unable to load habit service. Please restart the app.")
                 .font(.body)
-                .foregroundColor(.gray)
+                .foregroundColor(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
         }
-        .padding()
+        .padding(32)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.1), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 24)
     }
     
     // MARK: - Header Section
     
     private var headerSection: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "target")
-                .font(.system(size: 50))
-                .foregroundColor(.blue)
-                .opacity(animateContent ? 1 : 0)
-                .scaleEffect(animateContent ? 1 : 0.8)
-                .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: animateContent)
+        VStack(spacing: 20) {
+            // Icon with floating animation
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.blue.opacity(0.3),
+                                Color.blue.opacity(0.1),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 40
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .blur(radius: 10)
+                
+                Image(systemName: "target")
+                    .font(.system(size: 40))
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .background(
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 64, height: 64)
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [.white.opacity(0.2), .clear],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                    )
+            }
+            .opacity(animateContent ? 1 : 0)
+            .scaleEffect(animateContent ? 1 : 0.5)
+            .animation(.spring(response: 0.8, dampingFraction: 0.6).delay(0.1), value: animateContent)
             
-            VStack(spacing: 8) {
+            VStack(spacing: 12) {
                 Text("Add New Habit")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -133,32 +197,32 @@ struct AddHabitView: View {
                 
                 Text("Choose a habit to build or quit")
                     .font(.headline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
             .opacity(animateContent ? 1 : 0)
             .offset(y: animateContent ? 0 : 20)
-            .animation(.easeOut(duration: 0.6).delay(0.2), value: animateContent)
+            .animation(.easeOut(duration: 0.8).delay(0.2), value: animateContent)
         }
     }
     
     // MARK: - Habit Type Selection
     
     private var habitTypeSelection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Text("What do you want to do?")
-                .font(.headline)
+                .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
-            HStack(spacing: 12) {
+            HStack(spacing: 16) {
                 // Build Habit Button
                 habitTypeButton(
                     type: .build,
                     title: "Build Habit",
                     subtitle: "Create a positive habit",
                     icon: "plus.circle.fill",
-                    color: .success
+                    color: .green
                 )
                 
                 // Quit Habit Button
@@ -167,13 +231,13 @@ struct AddHabitView: View {
                     title: "Quit Habit",
                     subtitle: "Stop a negative habit",
                     icon: "minus.circle.fill",
-                    color: .failure
+                    color: .red
                 )
             }
         }
         .opacity(animateContent ? 1 : 0)
         .offset(y: animateContent ? 0 : 30)
-        .animation(.easeOut(duration: 0.6).delay(0.3), value: animateContent)
+        .animation(.easeOut(duration: 0.8).delay(0.3), value: animateContent)
     }
     
     // MARK: - Habit Type Button
@@ -184,64 +248,103 @@ struct AddHabitView: View {
                 selectedHabitType = type
             }
         } label: {
-            VStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.title)
-                    .foregroundColor(color)
+            VStack(spacing: 16) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [color.opacity(0.8), color.opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.white.opacity(0.2), .clear],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
+                    
+                    Image(systemName: icon)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                }
+                .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
                 
-                VStack(spacing: 4) {
+                VStack(spacing: 6) {
                     Text(title)
                         .font(.headline)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                     
                     Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
                 }
             }
-            .padding(.vertical, 20)
-            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
+            .padding(.horizontal, 20)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(selectedHabitType == type ? color.opacity(0.1) : Color.fallbackGlassBackground)
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(selectedHabitType == type ? color : Color.fallbackGlassBorder, lineWidth: selectedHabitType == type ? 2 : 0.5)
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        selectedHabitType == type ? color.opacity(0.6) : .white.opacity(0.2),
+                                        .clear
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: selectedHabitType == type ? 2 : 1
+                            )
                     )
             )
+            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+            .scaleEffect(selectedHabitType == type ? 1.02 : 1.0)
         }
         .buttonStyle(PlainButtonStyle())
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: selectedHabitType)
     }
     
     // MARK: - Preset Habits Section
     
     private func presetHabitsSection(habitService: HabitService) -> some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Text("Choose a preset habit")
-                .font(.headline)
+                .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
             let presets = selectedHabitType == .build ? PresetHabit.buildHabits : PresetHabit.quitHabits
             
-            let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 2)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
             
             if presets.isEmpty {
                 Text("No preset habits available for this type.")
                     .font(.headline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white.opacity(0.6))
                     .multilineTextAlignment(.center)
-                    .padding(.vertical, 20)
+                    .padding(.vertical, 40)
             } else {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(presets, id: \.name) { preset in
+                    ForEach(Array(presets.enumerated()), id: \.element.name) { index, preset in
                         presetHabitCard(preset: preset, habitService: habitService)
                             .opacity(animateContent ? 1 : 0)
                             .offset(y: animateContent ? 0 : 20)
-                            .animation(.easeOut(duration: 0.6).delay(0.4), value: animateContent)
+                            .animation(.easeOut(duration: 0.6).delay(0.4 + Double(index) * 0.1), value: animateContent)
                     }
                 }
             }
@@ -254,67 +357,96 @@ struct AddHabitView: View {
         Button {
             addPresetHabit(preset, habitService: habitService)
         } label: {
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
+                // Icon
                 ZStack {
                     Circle()
-                        .fill(habitTypeColor(for: preset.habitType))
-                        .frame(width: 50, height: 50)
+                        .fill(
+                            LinearGradient(
+                                colors: [habitTypeColor(for: preset.habitType).opacity(0.8), habitTypeColor(for: preset.habitType).opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.white.opacity(0.2), .clear],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
                     
                     Image(systemName: preset.iconName)
                         .font(.title2)
+                        .fontWeight(.semibold)
                         .foregroundColor(.white)
                 }
+                .shadow(color: habitTypeColor(for: preset.habitType).opacity(0.3), radius: 8, x: 0, y: 4)
                 
                 Text(preset.name)
                     .font(.headline)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.8)
             }
-            .padding(.vertical, 20)
+            .padding(.vertical, 24)
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity)
+            .frame(height: 140)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.fallbackGlassBackground)
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.fallbackGlassBorder, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.2), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
                     )
-                    .shadow(color: Color.fallbackGlassShadow, radius: 4, x: 0, y: 2)
             )
+            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
         }
-        .buttonStyle(PressedButtonStyle())
+        .buttonStyle(PremiumButtonStyle())
     }
     
     // MARK: - Custom Habit Section
     
     private func customHabitSection(habitService: HabitService) -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Text("Create custom habit")
-                .font(.headline)
+                .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
-            VStack(spacing: 16) {
+            VStack(spacing: 24) {
                 // Habit Name Input
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("Habit Name")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.gray)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
                     
                     TextField("Enter habit name", text: $customHabitName)
-                        .textFieldStyle(CustomTextFieldStyle())
+                        .textFieldStyle(PremiumTextFieldStyle())
                 }
                 
                 // Icon Selection
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("Choose Icon")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.gray)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
                     
                     iconSelectionGrid
                 }
@@ -334,29 +466,63 @@ struct AddHabitView: View {
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle.fill")
-                            .font(.headline)
+                            .font(.title3)
+                            .fontWeight(.semibold)
                         Text("Add Habit")
-                            .font(.headline)
+                            .font(.title3)
                             .fontWeight(.semibold)
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(habitTypeColor(for: selectedHabitType))
-                            .shadow(color: habitTypeColor(for: selectedHabitType).opacity(0.3), radius: 4, x: 0, y: 2)
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(
+                                LinearGradient(
+                                    colors: [habitTypeColor(for: selectedHabitType).opacity(0.8), habitTypeColor(for: selectedHabitType).opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [.white.opacity(0.2), .clear],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
                     )
+                    .shadow(color: habitTypeColor(for: selectedHabitType).opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .disabled(customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .opacity(customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
             }
-            .padding(.horizontal, 4)
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.2), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
         }
         .opacity(animateContent ? 1 : 0)
         .offset(y: animateContent ? 0 : 30)
-        .animation(.easeOut(duration: 0.6).delay(0.4), value: animateContent)
+        .animation(.easeOut(duration: 0.8).delay(0.4), value: animateContent)
     }
     
     // MARK: - Icon Selection Grid
@@ -364,25 +530,48 @@ struct AddHabitView: View {
     private var iconSelectionGrid: some View {
         let icons = ["star.fill", "heart.fill", "flame.fill", "bolt.fill", "leaf.fill", "drop.fill", "brain.head.profile", "dumbbell.fill", "book.fill", "bed.double.fill", "fork.knife", "figure.walk"]
         
-        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
+        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 6), spacing: 12) {
             ForEach(icons, id: \.self) { icon in
                 Button {
                     selectedIcon = icon
                 } label: {
                     Image(systemName: icon)
-                        .font(.title2)
-                        .foregroundColor(selectedIcon == icon ? .white : .gray)
-                        .frame(width: 44, height: 44)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(width: 48, height: 48)
                         .background(
                             Circle()
-                                .fill(selectedIcon == icon ? habitTypeColor(for: selectedHabitType) : Color.fallbackGlassBackground)
+                                .fill(
+                                    selectedIcon == icon ? 
+                                    LinearGradient(
+                                        colors: [habitTypeColor(for: selectedHabitType).opacity(0.8), habitTypeColor(for: selectedHabitType).opacity(0.6)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ) :
+                                    LinearGradient(
+                                        colors: [.white.opacity(0.1), .white.opacity(0.05)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
                                 .overlay(
                                     Circle()
-                                        .stroke(Color.fallbackGlassBorder, lineWidth: 0.5)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [.white.opacity(0.2), .clear],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
                                 )
                         )
+                        .shadow(color: selectedIcon == icon ? habitTypeColor(for: selectedHabitType).opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+                        .scaleEffect(selectedIcon == icon ? 1.05 : 1.0)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedIcon)
             }
         }
     }
@@ -396,35 +585,44 @@ struct AddHabitView: View {
             }
         } label: {
             HStack {
-                Image(systemName: showingPresets ? "pencil.circle" : "grid.circle")
-                    .font(.headline)
+                Image(systemName: showingPresets ? "pencil.circle.fill" : "grid.circle.fill")
+                    .font(.title3)
+                    .fontWeight(.semibold)
                 Text(showingPresets ? "Create Custom" : "Choose Preset")
-                    .font(.headline)
-                    .fontWeight(.medium)
+                    .font(.title3)
+                    .fontWeight(.semibold)
             }
-            .foregroundColor(.blue)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 24)
+            .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 32)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue.opacity(0.1))
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.blue.opacity(0.4), .purple.opacity(0.4)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
                     )
             )
+            .shadow(color: .blue.opacity(0.2), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(PlainButtonStyle())
         .opacity(animateContent ? 1 : 0)
-        .animation(.easeOut(duration: 0.6).delay(0.6), value: animateContent)
+        .animation(.easeOut(duration: 0.8).delay(0.6), value: animateContent)
     }
     
     // MARK: - Helper Methods
     
     private func habitTypeColor(for type: HabitType) -> Color {
         switch type {
-        case .build: return .success
-        case .quit: return .failure
+        case .build: return .green
+        case .quit: return .red
         }
     }
     
@@ -476,6 +674,8 @@ struct AddHabitView: View {
     }
 }
 
+
+
 // MARK: - Goal Settings View
 
 struct GoalSettingsView: View {
@@ -492,26 +692,40 @@ struct GoalSettingsView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.ignoresSafeArea()
+                // Premium Background
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.05, green: 0.05, blue: 0.15),
+                        Color(red: 0.1, green: 0.1, blue: 0.2),
+                        Color(red: 0.15, green: 0.1, blue: 0.25),
+                        Color.black
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
                 
-                VStack(spacing: 24) {
+                // Floating orbs
+                FloatingOrbs()
+                
+                VStack(spacing: 32) {
                     // Header
-                    VStack(spacing: 8) {
+                    VStack(spacing: 16) {
                         Text("Set Your Goal")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                         
                         Text("Customize your \(habitName.lowercased()) target")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .font(.headline)
+                            .foregroundColor(.white.opacity(0.7))
                     }
                     .opacity(animateContent ? 1 : 0)
                     .offset(y: animateContent ? 0 : -20)
-                    .animation(.easeOut(duration: 0.6), value: animateContent)
+                    .animation(.easeOut(duration: 0.8), value: animateContent)
                     
                     // Goal Settings
-                    VStack(spacing: 20) {
+                    VStack(spacing: 24) {
                         // Unit Selector
                         unitSelector
                         
@@ -529,16 +743,16 @@ struct GoalSettingsView: View {
                     }
                     .opacity(animateContent ? 1 : 0)
                     .offset(y: animateContent ? 0 : 20)
-                    .animation(.easeOut(duration: 0.6).delay(0.2), value: animateContent)
+                    .animation(.easeOut(duration: 0.8).delay(0.2), value: animateContent)
                     
                     Spacer()
                     
                     // Action Buttons
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
                         // Save Button
                         Button(action: onSave) {
                             Text("Save Habit")
-                                .font(.headline)
+                                .font(.title3)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
@@ -547,25 +761,39 @@ struct GoalSettingsView: View {
                                     RoundedRectangle(cornerRadius: 16)
                                         .fill(
                                             LinearGradient(
-                                                gradient: Gradient(colors: [.blue, .purple]),
-                                                startPoint: .leading,
-                                                endPoint: .trailing
+                                                colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
                                             )
                                         )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(
+                                                    LinearGradient(
+                                                        colors: [.white.opacity(0.2), .clear],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    ),
+                                                    lineWidth: 1
+                                                )
+                                        )
                                 )
+                                .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
                         }
+                        .buttonStyle(PremiumButtonStyle())
                         
                         // Cancel Button
                         Button(action: onCancel) {
                             Text("Cancel")
                                 .font(.headline)
                                 .fontWeight(.medium)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.white.opacity(0.7))
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     .opacity(animateContent ? 1 : 0)
                     .offset(y: animateContent ? 0 : 20)
-                    .animation(.easeOut(duration: 0.6).delay(0.4), value: animateContent)
+                    .animation(.easeOut(duration: 0.8).delay(0.4), value: animateContent)
                 }
                 .padding(24)
             }
@@ -573,7 +801,7 @@ struct GoalSettingsView: View {
         }
         .onAppear {
             targetText = "\(Int(goalTarget))"
-            withAnimation(.easeInOut(duration: 0.6)) {
+            withAnimation(.easeInOut(duration: 0.8)) {
                 animateContent = true
             }
         }
@@ -587,9 +815,9 @@ struct GoalSettingsView: View {
     // MARK: - View Components
     
     private var unitSelector: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("Measurement Unit")
-                .font(.headline)
+                .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
@@ -598,7 +826,7 @@ struct GoalSettingsView: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
                     ForEach(GoalUnit.allCases, id: \.self) { unit in
                         Button {
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                                 goalUnit = unit
                                 if unit == .none {
                                     goalTarget = 1
@@ -634,33 +862,45 @@ struct GoalSettingsView: View {
                                 }
                             }
                         } label: {
-                            VStack(spacing: 4) {
+                            VStack(spacing: 8) {
                                 Text(unit.longDisplayName.isEmpty ? "Simple" : unit.longDisplayName.capitalized)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
                                     .foregroundColor(.white)
                                 
                                 Text(unit.displayName.isEmpty ? "✓" : unit.displayName)
-                                    .font(.caption2)
-                                    .foregroundColor(.gray)
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.7))
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
+                            .padding(.vertical, 16)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.1))
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    .fill(.ultraThinMaterial)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [.white.opacity(0.2), .clear],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 1
+                                            )
+                                    )
                             )
+                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                         }
+                        .buttonStyle(PremiumButtonStyle())
                     }
                 }
             } else {
                 // Show selected unit with change button
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("Selected Unit")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
                         
                         Text(goalUnit.longDisplayName.isEmpty ? "Simple Completion" : goalUnit.longDisplayName.capitalized)
                             .font(.headline)
@@ -671,38 +911,83 @@ struct GoalSettingsView: View {
                     Spacer()
                     
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                             goalUnit = .none
                         }
                     } label: {
                         Text("Change")
-                            .font(.caption)
+                            .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundColor(.blue)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.blue.opacity(0.1))
-                                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [.white.opacity(0.2), .clear],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 1
+                                            )
+                                    )
                             )
+                            .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
+                    .buttonStyle(PremiumButtonStyle())
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(20)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.blue.opacity(0.1))
-                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.blue.opacity(0.4), .clear],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
                 )
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
             }
         }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.2), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
     }
     
     private var targetInput: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("Target Amount")
-                .font(.headline)
+                .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
@@ -717,22 +1002,50 @@ struct GoalSettingsView: View {
                 Text(goalUnit.displayName)
                     .font(.title2)
                     .fontWeight(.medium)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white.opacity(0.7))
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.1))
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.2), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
             )
+            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
         }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.2), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
     }
     
     private var descriptionInput: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("Goal Description (Optional)")
-                .font(.headline)
+                .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
@@ -740,44 +1053,42 @@ struct GoalSettingsView: View {
                 .font(.body)
                 .foregroundColor(.white)
                 .textFieldStyle(PlainTextFieldStyle())
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.gray.opacity(0.1))
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.white.opacity(0.2), .clear],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
                 )
+                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
         }
-    }
-}
-
-// MARK: - Custom Button Style
-
-struct PressedButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
-    }
-}
-
-// MARK: - Custom Text Field Style
-
-struct CustomTextFieldStyle: TextFieldStyle {
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .font(.headline)
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.fallbackGlassBackground)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.fallbackGlassBorder, lineWidth: 0.5)
-                    )
-            )
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.2), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
     }
 }
 

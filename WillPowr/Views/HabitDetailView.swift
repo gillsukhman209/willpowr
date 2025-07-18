@@ -4,6 +4,7 @@ struct HabitDetailView: View {
     let habit: Habit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.habitService) private var habitService
+    @EnvironmentObject private var dateManager: DateManager
     
     var body: some View {
         NavigationView {
@@ -136,7 +137,7 @@ struct HabitDetailView: View {
     private var actionsSection: some View {
         VStack(spacing: 12) {
             if habit.habitType == .build {
-                if habit.canCompleteToday {
+                if habit.canComplete(on: dateManager.currentDate) {
                     Button {
                         habitService?.completeHabit(habit)
                         dismiss()

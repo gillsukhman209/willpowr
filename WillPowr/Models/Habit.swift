@@ -47,6 +47,7 @@ final class Habit {
     var habitType: HabitType
     var iconName: String
     var streak: Int
+    var longestStreak: Int = 0 // Track the best-ever streak
     var isCompleted: Bool
     var lastCompletionDate: Date?
     var createdDate: Date
@@ -64,6 +65,7 @@ final class Habit {
         self.habitType = habitType
         self.iconName = iconName
         self.streak = 0
+        self.longestStreak = 0
         self.isCompleted = false
         self.lastCompletionDate = nil
         self.createdDate = Date()
@@ -99,9 +101,13 @@ final class Habit {
         return "\(current) / \(target) \(goalUnit.displayName)"
     }
     
-    var canCompleteToday: Bool {
+    func canComplete(on date: Date) -> Bool {
         guard let lastDate = lastCompletionDate else { return true }
-        return !Calendar.current.isDate(lastDate, inSameDayAs: Date())
+        return !Calendar.current.isDate(lastDate, inSameDayAs: date)
+    }
+    
+    var canCompleteToday: Bool {
+        return canComplete(on: Date())
     }
     
     private func formatValue(_ value: Double) -> String {

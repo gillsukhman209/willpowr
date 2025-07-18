@@ -54,12 +54,14 @@ struct WillPowrApp: App {
 struct AppRootView: View {
     let modelContainer: ModelContainer
     @State private var habitService: HabitService?
+    @StateObject private var dateManager = DateManager()
     
     var body: some View {
         Group {
             if let habitService = habitService {
                 ContentView()
                     .environment(\.habitService, habitService)
+                    .environmentObject(dateManager)
             } else {
                 ProgressView("Loading...")
                     .progressViewStyle(CircularProgressViewStyle())
@@ -71,7 +73,7 @@ struct AppRootView: View {
         }
         .task {
             // Create HabitService on MainActor
-            let service = HabitService(modelContext: modelContainer.mainContext)
+            let service = HabitService(modelContext: modelContainer.mainContext, dateManager: dateManager)
             habitService = service
         }
     }
