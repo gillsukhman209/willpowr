@@ -10,28 +10,27 @@ struct HabitCard: View {
     @State private var showingConfirmation = false
     
     var body: some View {
-        VStack(spacing: 16) {
-            // Header Row
-            headerRow
-            
-            // Streak Display
-            streakDisplay
-            
-            // Action Button
-            if habitService != nil {
-                actionButton
-            } else {
-                disabledActionButton
+        VStack(spacing: 0) {
+            // Main Content
+            VStack(spacing: 20) {
+                // Header
+                headerSection
+                
+                // Progress Section
+                progressSection
+                
+                // Action Button
+                actionSection
             }
+            .padding(24)
         }
-        .padding(20)
-        .background(backgroundGradient)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(borderColor, lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(borderGradient, lineWidth: 1)
         )
-        .shadow(color: shadowColor, radius: 10, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         .onTapGesture {
@@ -47,26 +46,52 @@ struct HabitCard: View {
         }
     }
     
-    // MARK: - Header Row
+    // MARK: - Header Section
     
-    private var headerRow: some View {
-        HStack(spacing: 12) {
+    private var headerSection: some View {
+        HStack(spacing: 16) {
             // Icon
-            iconView
+            ZStack {
+                Circle()
+                    .fill(iconBackgroundGradient)
+                    .frame(width: 56, height: 56)
+                
+                Image(systemName: habit.iconName)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+            }
+            .shadow(color: iconShadowColor, radius: 8, x: 0, y: 4)
             
             // Habit Info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(habit.name)
-                    .font(.headline)
+                    .font(.title3)
                     .fontWeight(.semibold)
-                    .foregroundColor(.fallbackPrimaryText)
+                    .foregroundColor(.white)
                     .lineLimit(1)
                 
-                HStack(spacing: 8) {
-                    habitTypeBadge
+                HStack(spacing: 12) {
+                    // Type Badge
+                    HStack(spacing: 4) {
+                        Image(systemName: habit.habitType == .build ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                            .font(.caption)
+                        Text(habit.habitType.displayName)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundColor(badgeColor)
                     
+                    // Completion Status
                     if habit.isGoalMet {
-                        completedBadge
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption)
+                            Text("Completed")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.green)
                     }
                 }
             }
@@ -74,165 +99,136 @@ struct HabitCard: View {
             Spacer()
             
             // Menu Button
-            menuButton
-        }
-    }
-    
-    // MARK: - Icon View
-    
-    private var iconView: some View {
-        ZStack {
-            Circle()
-                .fill(iconBackgroundColor)
-                .frame(width: 50, height: 50)
-            
-            Image(systemName: habit.iconName)
-                .font(.title2)
-                .foregroundColor(.white)
-        }
-        .shadow(color: iconBackgroundColor.opacity(0.3), radius: 4, x: 0, y: 2)
-    }
-    
-    // MARK: - Habit Type Badge
-    
-    private var habitTypeBadge: some View {
-        Text(habit.habitType.displayName)
-            .font(.caption)
-            .fontWeight(.medium)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                Capsule()
-                    .fill(badgeBackgroundColor)
-            )
-            .foregroundColor(badgeTextColor)
-    }
-    
-    // MARK: - Completed Badge
-    
-    private var completedBadge: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.caption)
-            Text("Done")
-                .font(.caption)
-                .fontWeight(.medium)
-        }
-        .foregroundColor(.success)
-    }
-    
-    // MARK: - Menu Button
-    
-    private var menuButton: some View {
-        Menu {
-            Button("View Details") {
-                onTap()
-            }
-            
-            Button("Reset Streak", role: .destructive) {
-                showingConfirmation = true
-            }
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(.title3)
-                .foregroundColor(.fallbackSecondaryText)
-                .padding(8)
-        }
-    }
-    
-    // MARK: - Streak Display
-    
-    private var streakDisplay: some View {
-        VStack(spacing: 8) {
-            // Status Display
-            HStack {
-                if habit.isGoalMet {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                } else {
-                    Image(systemName: "circle")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+            Menu {
+                Button("View Details") {
+                    onTap()
                 }
                 
-                Text(habit.displayProgress)
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .lineLimit(1)
+                Button("Reset Streak", role: .destructive) {
+                    showingConfirmation = true
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.title3)
+                    .foregroundColor(.white.opacity(0.6))
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                    )
+            }
+        }
+    }
+    
+    // MARK: - Progress Section
+    
+    private var progressSection: some View {
+        VStack(spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Current Streak")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.7))
+                    
+                    Text("\(habit.streak) \(habit.streak == 1 ? "day" : "days")")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                }
                 
                 Spacer()
                 
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Current Streak")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                // Progress for goal-based habits
+                if habit.goalUnit != .none {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("Today's Progress")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
                         
-                        Text("\(habit.streak) \(habit.streak == 1 ? "day" : "days")")
-                            .font(.headline)
-                            .fontWeight(.semibold)
+                        Text("\(Int(habit.progressPercentage * 100))%")
+                            .font(.title2)
+                            .fontWeight(.bold)
                             .foregroundColor(.white)
                     }
-                    
-                    Spacer()
-                    
-                    // Progress indicator for goal-based habits
-                    if habit.goalUnit != .none {
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text("Progress")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                            
-                            HStack(spacing: 4) {
-                                ProgressView(value: habit.progressPercentage)
-                                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
-                                    .frame(width: 60)
-                                
-                                Text("\(Int(habit.progressPercentage * 100))%")
-                                    .font(.caption)
-                                    .foregroundColor(.white)
-                            }
-                        }
-                    }
                 }
             }
-            .padding(.horizontal, 4)
             
-            HStack {
-                Text(habit.streak == 0 ? "Start your streak!" : "\(habit.streak) day\(habit.streak == 1 ? "" : "s")")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                
-                Spacer()
+            // Progress Bar for Goal-Based Habits
+            if habit.goalUnit != .none {
+                VStack(spacing: 8) {
+                    HStack {
+                        Text(habit.displayProgress)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
+                        
+                        Spacer()
+                        
+                        if habit.goalTarget > 0 {
+                            Text("\(Int(habit.goalTarget)) \(habit.goalUnit.rawValue)")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                    }
+                    
+                    ProgressView(value: habit.progressPercentage)
+                        .progressViewStyle(CustomProgressViewStyle())
+                        .frame(height: 8)
+                }
             }
+            
+            // Motivational Message
+            Text(motivationalMessage)
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.6))
+                .multilineTextAlignment(.center)
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(.white.opacity(0.1), lineWidth: 1)
+                )
+        )
     }
     
-    // MARK: - Action Button
+    // MARK: - Action Section
     
-    private var actionButton: some View {
+    private var actionSection: some View {
         Button {
             handleAction()
         } label: {
             HStack {
                 Image(systemName: actionButtonIcon)
-                    .font(.headline)
+                    .font(.title3)
+                    .fontWeight(.semibold)
                 
                 Text(actionButtonText)
-                    .font(.headline)
+                    .font(.title3)
                     .fontWeight(.semibold)
                 
                 Spacer()
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(actionButtonColor)
-                    .shadow(color: actionButtonColor.opacity(0.3), radius: 4, x: 0, y: 2)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(actionButtonGradient)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.2), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
             )
+            .shadow(color: actionButtonShadow, radius: 8, x: 0, y: 4)
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(!habit.canCompleteToday && habit.habitType == .build)
@@ -242,46 +238,26 @@ struct HabitCard: View {
         )
     }
     
-    // MARK: - Disabled Action Button
-    
-    private var disabledActionButton: some View {
-        Button {
-            // No action for disabled button
-        } label: {
-            HStack {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.headline)
-                Text("Service Unavailable")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                Spacer()
-            }
-            .foregroundColor(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray)
-                    .shadow(color: Color.gray.opacity(0.3), radius: 4, x: 0, y: 2)
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(true)
-    }
-    
     // MARK: - Success Overlay
     
     private var successOverlay: some View {
         ZStack {
             if showingSuccess {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.success)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            colors: [.green.opacity(0.9), .green.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .overlay(
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
-                                .font(.headline)
+                                .font(.title3)
+                                .fontWeight(.semibold)
                             Text("Great job!")
-                                .font(.headline)
+                                .font(.title3)
                                 .fontWeight(.semibold)
                         }
                         .foregroundColor(.white)
@@ -294,61 +270,76 @@ struct HabitCard: View {
     
     // MARK: - Computed Properties
     
-    private var backgroundGradient: LinearGradient {
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 20)
+            .fill(.ultraThinMaterial)
+    }
+    
+    private var borderGradient: LinearGradient {
         LinearGradient(
             colors: [
-                Color.fallbackGlassBackground,
-                Color.fallbackGlassBackground.opacity(0.8)
+                habit.isGoalMet ? .green.opacity(0.3) : .white.opacity(0.2),
+                .clear
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
     }
     
-    private var borderColor: Color {
-        habit.isGoalMet ? .green.opacity(0.3) : .gray.opacity(0.3)
-    }
-    
-    private var shadowColor: Color {
-        habit.isGoalMet ? .green.opacity(0.2) : .gray.opacity(0.2)
-    }
-    
-    private var iconBackgroundColor: Color {
+    private var iconBackgroundGradient: LinearGradient {
         switch habit.habitType {
         case .build:
-            return .success
+            return LinearGradient(
+                colors: [.green.opacity(0.8), .green.opacity(0.6)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
         case .quit:
-            return .failure
+            return LinearGradient(
+                colors: [.red.opacity(0.8), .red.opacity(0.6)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
         }
     }
     
-    private var badgeBackgroundColor: Color {
+    private var iconShadowColor: Color {
         switch habit.habitType {
         case .build:
-            return .success.opacity(0.2)
+            return .green.opacity(0.3)
         case .quit:
-            return .failure.opacity(0.2)
+            return .red.opacity(0.3)
         }
     }
     
-    private var badgeTextColor: Color {
+    private var badgeColor: Color {
         switch habit.habitType {
         case .build:
-            return .success
+            return .green
         case .quit:
-            return .failure
+            return .red
         }
     }
     
-    private var streakColor: Color {
-        Color.streakColor(for: habit.streak)
+    private var motivationalMessage: String {
+        if habit.isGoalMet {
+            return "Amazing! You've completed today's goal."
+        } else if habit.streak == 0 {
+            return "Ready to start your journey? You've got this!"
+        } else if habit.streak < 7 {
+            return "Building momentum! Keep going strong."
+        } else if habit.streak < 30 {
+            return "Fantastic progress! You're forming a habit."
+        } else {
+            return "Incredible dedication! You're a habit master."
+        }
     }
     
-    // MARK: - Action Button Helpers
+    // MARK: - Action Button Properties
     
     private var actionButtonText: String {
         if habit.habitType == .build {
-            return habit.isGoalMet ? "Completed" : "Mark Complete"
+            return habit.isGoalMet ? "Completed Today" : "Mark Complete"
         } else {
             return "I Failed"
         }
@@ -362,11 +353,35 @@ struct HabitCard: View {
         }
     }
     
-    private var actionButtonColor: Color {
+    private var actionButtonGradient: LinearGradient {
         if habit.habitType == .build {
-            return habit.isGoalMet ? .green : .blue
+            if habit.isGoalMet {
+                return LinearGradient(
+                    colors: [.green.opacity(0.8), .green.opacity(0.6)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            } else {
+                return LinearGradient(
+                    colors: [.blue.opacity(0.8), .blue.opacity(0.6)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
         } else {
-            return .red
+            return LinearGradient(
+                colors: [.red.opacity(0.8), .red.opacity(0.6)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+    
+    private var actionButtonShadow: Color {
+        if habit.habitType == .build {
+            return habit.isGoalMet ? .green.opacity(0.3) : .blue.opacity(0.3)
+        } else {
+            return .red.opacity(0.3)
         }
     }
     
@@ -407,11 +422,37 @@ struct HabitCard: View {
     }
 }
 
+// MARK: - Custom Progress View Style
+
+struct CustomProgressViewStyle: ProgressViewStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(.ultraThinMaterial)
+                .frame(height: 8)
+            
+            RoundedRectangle(cornerRadius: 4)
+                .fill(
+                    LinearGradient(
+                        colors: [.blue, .purple],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(
+                    width: (configuration.fractionCompleted ?? 0) * 200,
+                    height: 8
+                )
+                .animation(.easeInOut, value: configuration.fractionCompleted)
+        }
+    }
+}
+
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: 20) {
-        HabitCard(habit: Habit(name: "Walk Daily", habitType: .build, iconName: "figure.walk")) {
+    VStack(spacing: 24) {
+        HabitCard(habit: Habit(name: "Daily Walk", habitType: .build, iconName: "figure.walk")) {
             print("Tapped habit")
         }
         
@@ -419,7 +460,18 @@ struct HabitCard: View {
             print("Tapped habit")
         }
     }
-    .padding()
-    .background(Color.fallbackPrimaryBackground)
+    .padding(24)
+    .background(
+        LinearGradient(
+            colors: [
+                Color(red: 0.05, green: 0.05, blue: 0.15),
+                Color(red: 0.1, green: 0.1, blue: 0.2),
+                Color(red: 0.15, green: 0.1, blue: 0.25),
+                Color.black
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    )
     .preferredColorScheme(.dark)
 } 

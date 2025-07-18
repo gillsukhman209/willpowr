@@ -10,8 +10,21 @@ struct DashboardView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Background
-                Color.black.ignoresSafeArea()
+                // Premium Background with Gradient
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.05, green: 0.05, blue: 0.15),
+                        Color(red: 0.1, green: 0.1, blue: 0.2),
+                        Color(red: 0.15, green: 0.1, blue: 0.25),
+                        Color.black
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                
+                // Floating orbs for depth
+                FloatingOrbs()
                 
                 if let habitService = habitService {
                     mainContent(habitService: habitService)
@@ -38,11 +51,11 @@ struct DashboardView: View {
     @ViewBuilder
     private func mainContent(habitService: HabitService) -> some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 32) {
                 // Header
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text("WillPowr")
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
@@ -50,7 +63,7 @@ struct DashboardView: View {
                             
                             Text("Build habits. Quit bad ones.")
                                 .font(.subheadline)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.white.opacity(0.7))
                         }
                         
                         Spacer()
@@ -62,10 +75,10 @@ struct DashboardView: View {
                             Image(systemName: "trash.fill")
                                 .font(.caption)
                                 .foregroundColor(.red.opacity(0.7))
-                                .frame(width: 24, height: 24)
+                                .frame(width: 28, height: 28)
                                 .background(
                                     Circle()
-                                        .fill(Color.red.opacity(0.1))
+                                        .fill(.ultraThinMaterial)
                                         .overlay(
                                             Circle()
                                                 .stroke(Color.red.opacity(0.3), lineWidth: 1)
@@ -76,7 +89,7 @@ struct DashboardView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
+                .padding(.horizontal, 24)
                 
                 // Stats Cards
                 statsSection(habitService: habitService)
@@ -84,7 +97,7 @@ struct DashboardView: View {
                 // Habits Section
                 habitsSection(habitService: habitService)
                 
-                Spacer(minLength: 100)
+                Spacer(minLength: 120)
             }
             .padding(.top, 60)
         }
@@ -101,23 +114,37 @@ struct DashboardView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
-                            .frame(width: 60, height: 60)
+                            .frame(width: 64, height: 64)
                             .background(
                                 Circle()
                                     .fill(
                                         LinearGradient(
-                                            gradient: Gradient(colors: [.blue, .purple]),
+                                            gradient: Gradient(colors: [
+                                                Color.blue.opacity(0.8),
+                                                Color.purple.opacity(0.8)
+                                            ]),
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
+                                    .overlay(
+                                        Circle()
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [.white.opacity(0.2), .clear],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 1
+                                            )
+                                    )
                             )
-                            .shadow(color: .blue.opacity(0.3), radius: 20, x: 0, y: 10)
+                            .shadow(color: .blue.opacity(0.4), radius: 20, x: 0, y: 10)
                     }
                     .scaleEffect(showingAddHabit ? 0.95 : 1.0)
                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showingAddHabit)
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 34)
+                    .padding(.trailing, 24)
+                    .padding(.bottom, 40)
                 }
             }
         )
@@ -133,7 +160,7 @@ struct DashboardView: View {
     
     @ViewBuilder
     private var errorContent: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 60))
                 .foregroundColor(.red)
@@ -145,21 +172,30 @@ struct DashboardView: View {
             
             Text("Unable to load habit service. Please restart the app.")
                 .font(.body)
-                .foregroundColor(.gray)
+                .foregroundColor(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
         }
-        .padding()
+        .padding(32)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.1), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 24)
     }
     
     @ViewBuilder
     private func statsSection(habitService: HabitService) -> some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
+        VStack(spacing: 16) {
+            HStack(spacing: 16) {
                 StatCard(
                     title: "Total Habits",
                     value: "\(habitService.totalActiveHabits())",
                     icon: "target",
-                    color: .gray
+                    color: .indigo
                 )
                 
                 StatCard(
@@ -177,27 +213,27 @@ struct DashboardView: View {
                 )
             }
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 24)
     }
     
     @ViewBuilder
     private func habitsSection(habitService: HabitService) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             let sortedHabits = habitService.sortedHabits()
             if !sortedHabits.isEmpty {
                 Text("Your Habits")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 24)
                 
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: 16) {
                     ForEach(sortedHabits) { habit in
                         HabitCard(habit: habit) {
                             selectedHabit = habit
                             showingHabitDetail = true
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 24)
                     }
                 }
             } else {
@@ -209,12 +245,12 @@ struct DashboardView: View {
     // MARK: - Empty State
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Image(systemName: "target")
                 .font(.system(size: 60))
-                .foregroundColor(.gray)
+                .foregroundColor(.white.opacity(0.4))
             
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 Text("Start Your Journey")
                     .font(.title2)
                     .fontWeight(.semibold)
@@ -222,12 +258,22 @@ struct DashboardView: View {
                 
                 Text("Add your first habit and begin building the life you want.")
                     .font(.body)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 32)
         }
-        .padding(.top, 40)
+        .padding(.top, 60)
+        .padding(.horizontal, 24)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.1), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 24)
     }
     
     // MARK: - Add Habit Button
@@ -288,6 +334,97 @@ struct DashboardView: View {
     }
 }
 
+// MARK: - Floating Orbs Background Component
+
+struct FloatingOrbs: View {
+    @State private var animate = false
+    
+    var body: some View {
+        ZStack {
+            // Large orb
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.blue.opacity(0.15),
+                            Color.blue.opacity(0.05),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 100
+                    )
+                )
+                .frame(width: 200, height: 200)
+                .blur(radius: 20)
+                .offset(
+                    x: animate ? -50 : 50,
+                    y: animate ? -80 : 80
+                )
+                .animation(
+                    .easeInOut(duration: 8)
+                    .repeatForever(autoreverses: true),
+                    value: animate
+                )
+            
+            // Medium orb
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.purple.opacity(0.12),
+                            Color.purple.opacity(0.04),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 80
+                    )
+                )
+                .frame(width: 160, height: 160)
+                .blur(radius: 15)
+                .offset(
+                    x: animate ? 80 : -80,
+                    y: animate ? 100 : -100
+                )
+                .animation(
+                    .easeInOut(duration: 6)
+                    .repeatForever(autoreverses: true),
+                    value: animate
+                )
+            
+            // Small orb
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.indigo.opacity(0.1),
+                            Color.indigo.opacity(0.03),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 60
+                    )
+                )
+                .frame(width: 120, height: 120)
+                .blur(radius: 10)
+                .offset(
+                    x: animate ? -30 : 30,
+                    y: animate ? -120 : 120
+                )
+                .animation(
+                    .easeInOut(duration: 10)
+                    .repeatForever(autoreverses: true),
+                    value: animate
+                )
+        }
+        .onAppear {
+            animate = true
+        }
+    }
+}
+
 // MARK: - Stat Card Component
 
 struct StatCard: View {
@@ -297,7 +434,7 @@ struct StatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             HStack {
                 Image(systemName: icon)
                     .font(.title3)
@@ -305,28 +442,35 @@ struct StatCard: View {
                 Spacer()
             }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(value)
                     .font(.title)
                     .fontWeight(.bold)
-                    .foregroundColor(.fallbackPrimaryText)
+                    .foregroundColor(.white)
                 
                 Text(title)
                     .font(.caption)
-                    .foregroundColor(.fallbackSecondaryText)
+                    .foregroundColor(.white.opacity(0.7))
             }
         }
-        .padding(16)
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.fallbackGlassBackground)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.fallbackGlassBorder, lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.2), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
-                .shadow(color: Color.fallbackGlassShadow, radius: 4, x: 0, y: 2)
         )
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
     }
 }
 
