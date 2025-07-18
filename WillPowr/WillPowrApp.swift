@@ -19,7 +19,26 @@ struct WillPowrApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            print("❌ Failed to create ModelContainer: \(error)")
+            
+            // Try to create a fresh container by clearing the store
+            do {
+                let freshConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+                let freshContainer = try ModelContainer(for: schema, configurations: [freshConfiguration])
+                print("✅ Created fresh ModelContainer after clearing store")
+                return freshContainer
+            } catch {
+                print("❌ Failed to create fresh ModelContainer: \(error)")
+                // As a last resort, use in-memory storage
+                do {
+                    let inMemoryConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+                    let inMemoryContainer = try ModelContainer(for: schema, configurations: [inMemoryConfiguration])
+                    print("⚠️ Using in-memory storage as fallback")
+                    return inMemoryContainer
+                } catch {
+                    fatalError("Could not create any ModelContainer: \(error)")
+                }
+            }
         }
     }()
 

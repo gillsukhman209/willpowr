@@ -10,6 +10,13 @@ struct AddHabitView: View {
     @State private var showingPresets = true
     @State private var animateContent = false
     
+    // Goal Setting State
+    @State private var goalTarget: Double = 1
+    @State private var goalUnit: GoalUnit = .none
+    @State private var goalDescription: String = ""
+    @State private var showingGoalSettings = false
+    @State private var selectedPreset: PresetHabit? = nil
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -37,6 +44,26 @@ struct AddHabitView: View {
             withAnimation(.easeInOut(duration: 0.6)) {
                 animateContent = true
             }
+        }
+        .sheet(isPresented: $showingGoalSettings) {
+            GoalSettingsView(
+                habitName: selectedPreset?.name ?? customHabitName,
+                goalTarget: $goalTarget,
+                goalUnit: $goalUnit,
+                goalDescription: $goalDescription,
+                onSave: {
+                    if let habitService = habitService {
+                        if selectedPreset != nil {
+                            finalizeHabit(habitService: habitService)
+                        } else {
+                            createCustomHabit(habitService: habitService)
+                        }
+                    }
+                },
+                onCancel: {
+                    showingGoalSettings = false
+                }
+            )
         }
     }
     
@@ -294,7 +321,16 @@ struct AddHabitView: View {
                 
                 // Add Button
                 Button {
-                    addCustomHabit(habitService)
+                    guard !customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                        return
+                    }
+                    
+                    // Set up goal settings for custom habit
+                    selectedPreset = nil
+                    goalTarget = 1
+                    goalUnit = .none
+                    goalDescription = ""
+                    showingGoalSettings = true
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle.fill")
@@ -392,23 +428,326 @@ struct AddHabitView: View {
         }
     }
     
+    // MARK: - Actions
+    
     private func addPresetHabit(_ preset: PresetHabit, habitService: HabitService) {
-        print("🎯 Adding preset habit: \(preset.name)")
-        habitService.addPresetHabit(preset)
-        dismiss()
+        // Set up goal settings from preset
+        selectedPreset = preset
+        goalTarget = preset.defaultGoalTarget
+        goalUnit = preset.defaultGoalUnit
+        goalDescription = preset.goalDescription ?? ""
+        
+        // Show goal settings screen
+        showingGoalSettings = true
     }
     
-    private func addCustomHabit(_ habitService: HabitService) {
-        guard !customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+    private func createCustomHabit(habitService: HabitService) {
+        guard !customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return
+        }
         
-        print("🎯 AddHabitView: Adding custom habit - \(customHabitName)")
         habitService.addHabit(
             name: customHabitName,
             type: selectedHabitType,
             iconName: selectedIcon,
-            isCustom: true
+            isCustom: true,
+            goalTarget: goalTarget,
+            goalUnit: goalUnit,
+            goalDescription: goalDescription.isEmpty ? nil : goalDescription
         )
+        
         dismiss()
+    }
+    
+    private func finalizeHabit(habitService: HabitService) {
+        if let preset = selectedPreset {
+            habitService.addHabit(
+                name: preset.name,
+                type: preset.habitType,
+                iconName: preset.iconName,
+                isCustom: false,
+                goalTarget: goalTarget,
+                goalUnit: goalUnit,
+                goalDescription: goalDescription.isEmpty ? nil : goalDescription
+            )
+        }
+        
+        dismiss()
+    }
+}
+
+// MARK: - Goal Settings View
+
+struct GoalSettingsView: View {
+    let habitName: String
+    @Binding var goalTarget: Double
+    @Binding var goalUnit: GoalUnit
+    @Binding var goalDescription: String
+    let onSave: () -> Void
+    let onCancel: () -> Void
+    
+    @State private var targetText: String = ""
+    @State private var animateContent = false
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 8) {
+                        Text("Set Your Goal")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        Text("Customize your \(habitName.lowercased()) target")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                    .opacity(animateContent ? 1 : 0)
+                    .offset(y: animateContent ? 0 : -20)
+                    .animation(.easeOut(duration: 0.6), value: animateContent)
+                    
+                    // Goal Settings
+                    VStack(spacing: 20) {
+                        // Unit Selector
+                        unitSelector
+                        
+                        // Target Input - show when unit is selected and not .none
+                        if goalUnit != .none {
+                            targetInput
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .move(edge: .top).combined(with: .opacity)
+                                ))
+                        }
+                        
+                        // Description Input - always show
+                        descriptionInput
+                    }
+                    .opacity(animateContent ? 1 : 0)
+                    .offset(y: animateContent ? 0 : 20)
+                    .animation(.easeOut(duration: 0.6).delay(0.2), value: animateContent)
+                    
+                    Spacer()
+                    
+                    // Action Buttons
+                    VStack(spacing: 12) {
+                        // Save Button
+                        Button(action: onSave) {
+                            Text("Save Habit")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [.blue, .purple]),
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                )
+                        }
+                        
+                        // Cancel Button
+                        Button(action: onCancel) {
+                            Text("Cancel")
+                                .font(.headline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .opacity(animateContent ? 1 : 0)
+                    .offset(y: animateContent ? 0 : 20)
+                    .animation(.easeOut(duration: 0.6).delay(0.4), value: animateContent)
+                }
+                .padding(24)
+            }
+            .navigationBarHidden(true)
+        }
+        .onAppear {
+            targetText = "\(Int(goalTarget))"
+            withAnimation(.easeInOut(duration: 0.6)) {
+                animateContent = true
+            }
+        }
+        .onChange(of: targetText) { _, newValue in
+            if let value = Double(newValue), value > 0 {
+                goalTarget = value
+            }
+        }
+    }
+    
+    // MARK: - View Components
+    
+    private var unitSelector: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Measurement Unit")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            
+            if goalUnit == .none {
+                // Show all options when no unit is selected
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
+                    ForEach(GoalUnit.allCases, id: \.self) { unit in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                goalUnit = unit
+                                if unit == .none {
+                                    goalTarget = 1
+                                    targetText = "1"
+                                } else {
+                                    // Set reasonable defaults for each unit
+                                    switch unit {
+                                    case .steps:
+                                        goalTarget = 8000
+                                        targetText = "8000"
+                                    case .minutes:
+                                        goalTarget = 30
+                                        targetText = "30"
+                                    case .hours:
+                                        goalTarget = 2
+                                        targetText = "2"
+                                    case .liters:
+                                        goalTarget = 2
+                                        targetText = "2"
+                                    case .glasses:
+                                        goalTarget = 8
+                                        targetText = "8"
+                                    case .grams:
+                                        goalTarget = 25
+                                        targetText = "25"
+                                    case .count:
+                                        goalTarget = 3
+                                        targetText = "3"
+                                    case .none:
+                                        goalTarget = 1
+                                        targetText = "1"
+                                    }
+                                }
+                            }
+                        } label: {
+                            VStack(spacing: 4) {
+                                Text(unit.longDisplayName.isEmpty ? "Simple" : unit.longDisplayName.capitalized)
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                
+                                Text(unit.displayName.isEmpty ? "✓" : unit.displayName)
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.1))
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Show selected unit with change button
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Selected Unit")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        
+                        Text(goalUnit.longDisplayName.isEmpty ? "Simple Completion" : goalUnit.longDisplayName.capitalized)
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                    }
+                    
+                    Spacer()
+                    
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            goalUnit = .none
+                        }
+                    } label: {
+                        Text("Change")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.blue.opacity(0.1))
+                                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                            )
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.blue.opacity(0.1))
+                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                )
+            }
+        }
+    }
+    
+    private var targetInput: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Target Amount")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            
+            HStack {
+                TextField("Enter target", text: $targetText)
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(PlainTextFieldStyle())
+                
+                Text(goalUnit.displayName)
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.gray)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.1))
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
+        }
+    }
+    
+    private var descriptionInput: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Goal Description (Optional)")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            
+            TextField("e.g., Walk 8,000 steps daily", text: $goalDescription)
+                .font(.body)
+                .foregroundColor(.white)
+                .textFieldStyle(PlainTextFieldStyle())
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray.opacity(0.1))
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+        }
     }
 }
 

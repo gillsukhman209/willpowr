@@ -65,7 +65,7 @@ struct HabitCard: View {
                 HStack(spacing: 8) {
                     habitTypeBadge
                     
-                    if habit.isCompletedToday {
+                    if habit.isGoalMet {
                         completedBadge
                     }
                 }
@@ -144,32 +144,69 @@ struct HabitCard: View {
     
     private var streakDisplay: some View {
         VStack(spacing: 8) {
+            // Status Display
             HStack {
-                Image(systemName: "flame.fill")
-                    .font(.title2)
-                    .foregroundColor(streakColor)
+                if habit.isGoalMet {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                } else {
+                    Image(systemName: "circle")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
                 
-                Text("\(habit.streak)")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.fallbackPrimaryText)
-                
-                Text(habit.streak == 1 ? "day" : "days")
-                    .font(.headline)
-                    .foregroundColor(.fallbackSecondaryText)
+                Text(habit.displayProgress)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .lineLimit(1)
                 
                 Spacer()
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Current Streak")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        
+                        Text("\(habit.streak) \(habit.streak == 1 ? "day" : "days")")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                    }
+                    
+                    Spacer()
+                    
+                    // Progress indicator for goal-based habits
+                    if habit.goalUnit != .none {
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("Progress")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            
+                            HStack(spacing: 4) {
+                                ProgressView(value: habit.progressPercentage)
+                                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                                    .frame(width: 60)
+                                
+                                Text("\(Int(habit.progressPercentage * 100))%")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
+                }
             }
+            .padding(.horizontal, 4)
             
             HStack {
-                Text(habit.streakText)
+                Text(habit.streak == 0 ? "Start your streak!" : "\(habit.streak) day\(habit.streak == 1 ? "" : "s")")
                     .font(.subheadline)
-                    .foregroundColor(.fallbackSecondaryText)
+                    .foregroundColor(.gray)
                 
                 Spacer()
             }
         }
-        .padding(.horizontal, 4)
     }
     
     // MARK: - Action Button
@@ -269,11 +306,11 @@ struct HabitCard: View {
     }
     
     private var borderColor: Color {
-        habit.isCompletedToday ? .success.opacity(0.3) : .fallbackGlassBorder
+        habit.isGoalMet ? .green.opacity(0.3) : .gray.opacity(0.3)
     }
     
     private var shadowColor: Color {
-        habit.isCompletedToday ? .success.opacity(0.2) : .fallbackGlassShadow
+        habit.isGoalMet ? .green.opacity(0.2) : .gray.opacity(0.2)
     }
     
     private var iconBackgroundColor: Color {
@@ -307,9 +344,11 @@ struct HabitCard: View {
         Color.streakColor(for: habit.streak)
     }
     
+    // MARK: - Action Button Helpers
+    
     private var actionButtonText: String {
         if habit.habitType == .build {
-            return habit.isCompletedToday ? "Completed" : "Mark Complete"
+            return habit.isGoalMet ? "Completed" : "Mark Complete"
         } else {
             return "I Failed"
         }
@@ -317,7 +356,7 @@ struct HabitCard: View {
     
     private var actionButtonIcon: String {
         if habit.habitType == .build {
-            return habit.isCompletedToday ? "checkmark.circle.fill" : "checkmark.circle"
+            return habit.isGoalMet ? "checkmark.circle.fill" : "checkmark.circle"
         } else {
             return "xmark.circle"
         }
@@ -325,9 +364,9 @@ struct HabitCard: View {
     
     private var actionButtonColor: Color {
         if habit.habitType == .build {
-            return habit.isCompletedToday ? .success : .blue
+            return habit.isGoalMet ? .green : .blue
         } else {
-            return .failure
+            return .red
         }
     }
     
@@ -335,7 +374,7 @@ struct HabitCard: View {
     
     private func handleAction() {
         if habit.habitType == .build {
-            if !habit.isCompletedToday {
+            if !habit.isGoalMet {
                 completeHabit()
             }
         } else {
@@ -344,8 +383,10 @@ struct HabitCard: View {
     }
     
     private func completeHabit() {
-        habitService?.completeHabit(habit)
-        showSuccessAnimation()
+        if !habit.isGoalMet {
+            habitService?.completeHabit(habit)
+            showSuccessAnimation()
+        }
     }
     
     private func failHabit() {

@@ -35,8 +35,8 @@ final class HabitService: ObservableObject {
         isLoading = false
     }
     
-    func addHabit(name: String, type: HabitType, iconName: String, isCustom: Bool = false) {
-        print("🔧 HabitService.addHabit called with name: \(name), type: \(type)")
+    func addHabit(name: String, type: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil) {
+        print("🔧 HabitService.addHabit called with name: \(name), type: \(type), goal: \(goalTarget) \(goalUnit.displayName)")
         
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             print("❌ Invalid name: '\(name)'")
@@ -48,22 +48,35 @@ final class HabitService: ObservableObject {
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             habitType: type,
             iconName: iconName,
-            isCustom: isCustom
+            isCustom: isCustom,
+            goalTarget: goalTarget,
+            goalUnit: goalUnit,
+            goalDescription: goalDescription
         )
         
-        print("✅ Creating habit: \(habit.name)")
         modelContext.insert(habit)
-        saveContext()
-        loadHabits()
-        print("📊 Total habits after adding: \(habits.count)")
+        
+        do {
+            try modelContext.save()
+            print("✅ Habit saved successfully: \(habit.name)")
+            loadHabits()
+        } catch {
+            print("❌ Error saving habit: \(error)")
+            self.error = .savingFailed(error.localizedDescription)
+        }
     }
     
     func addPresetHabit(_ preset: PresetHabit) {
+        print("🔧 HabitService.addPresetHabit called with preset: \(preset.name)")
+        
         addHabit(
             name: preset.name,
             type: preset.habitType,
             iconName: preset.iconName,
-            isCustom: false
+            isCustom: false,
+            goalTarget: preset.defaultGoalTarget,
+            goalUnit: preset.defaultGoalUnit,
+            goalDescription: preset.goalDescription
         )
     }
     
@@ -78,44 +91,101 @@ final class HabitService: ObservableObject {
         loadHabits()
     }
     
-    // MARK: - Habit Actions
+    // MARK: - Habit Completion
     
     func completeHabit(_ habit: Habit) {
-        guard habit.canCompleteToday else {
-            error = .alreadyCompleted
+        print("🎯 Completing habit: \(habit.name)")
+        
+        if habit.goalUnit == .none {
+            // Binary completion (complete/incomplete)
+            markHabitComplete(habit)
+        } else {
+            // Goal-based completion - complete the goal
+            addProgressToHabit(habit, progress: habit.goalTarget)
+        }
+    }
+    
+    func addProgressToHabit(_ habit: Habit, progress: Double) {
+        print("📊 Adding progress to habit: \(habit.name), progress: \(progress)")
+        
+        // Reset progress if it's a new day
+        if let lastCompletion = habit.lastCompletionDate,
+           !Calendar.current.isDate(lastCompletion, inSameDayAs: Date()) {
+            habit.currentProgress = 0
+        }
+        
+        // Add progress
+        habit.currentProgress = min(habit.currentProgress + progress, habit.goalTarget)
+        
+        // Check if goal is met
+        if habit.currentProgress >= habit.goalTarget && !habit.isGoalMet {
+            markHabitComplete(habit)
+        }
+        
+        saveContext()
+    }
+    
+    private func markHabitComplete(_ habit: Habit) {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Check if already completed today
+        if let lastCompletion = habit.lastCompletionDate,
+           calendar.isDate(lastCompletion, inSameDayAs: today) {
+            print("⚠️ Habit already completed today")
             return
         }
         
-        habit.markCompleted()
+        // Update streak logic
+        if let lastCompletion = habit.lastCompletionDate {
+            let daysBetween = calendar.dateComponents([.day], from: lastCompletion, to: today).day ?? 0
+            
+            if daysBetween == 1 {
+                // Consecutive day - increment streak
+                habit.streak += 1
+            } else if daysBetween > 1 {
+                // Missed days - reset streak
+                habit.streak = 1
+            }
+        } else {
+            // First completion
+            habit.streak = 1
+        }
+        
+        // Mark as completed
+        habit.isCompleted = true
+        habit.lastCompletionDate = today
+        
+        print("✅ Habit completed: \(habit.name), streak: \(habit.streak)")
         saveContext()
-        
-        // Trigger haptic feedback
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
-        
-        objectWillChange.send()
     }
     
     func failHabit(_ habit: Habit) {
+        print("❌ Failing habit: \(habit.name)")
+        
         guard habit.habitType == .quit else {
-            error = .invalidAction
+            print("⚠️ Cannot fail a build habit")
             return
         }
         
-        habit.markFailed()
+        // Reset streak and progress
+        habit.streak = 0
+        habit.currentProgress = 0
+        habit.isCompleted = false
+        habit.lastCompletionDate = Date()
+        
         saveContext()
-        
-        // Trigger haptic feedback
-        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-        impactFeedback.impactOccurred()
-        
-        objectWillChange.send()
     }
     
     func resetHabitStreak(_ habit: Habit) {
-        habit.resetStreak()
+        print("🔄 Resetting streak for habit: \(habit.name)")
+        
+        habit.streak = 0
+        habit.currentProgress = 0
+        habit.isCompleted = false
+        habit.lastCompletionDate = nil
+        
         saveContext()
-        objectWillChange.send()
     }
     
     // MARK: - Statistics
@@ -124,20 +194,14 @@ final class HabitService: ObservableObject {
         return habits.count
     }
     
-    func totalStreakDays() -> Int {
-        return habits.reduce(0) { $0 + $1.streak }
-    }
-    
-    func buildHabitsCount() -> Int {
-        return habits.filter { $0.habitType == .build }.count
-    }
-    
-    func quitHabitsCount() -> Int {
-        return habits.filter { $0.habitType == .quit }.count
-    }
-    
     func habitsCompletedToday() -> Int {
-        return habits.filter { $0.isCompletedToday }.count
+        return habits.filter { habit in
+            if habit.goalUnit == .none {
+                return habit.isCompleted && habit.canCompleteToday == false // completed today
+            } else {
+                return habit.isGoalMet
+            }
+        }.count
     }
     
     func longestStreak() -> Int {
@@ -158,59 +222,59 @@ final class HabitService: ObservableObject {
     // MARK: - Private Methods
     
     private func saveContext() {
-        print("💾 Saving context...")
         do {
             try modelContext.save()
-            print("✅ Context saved successfully")
+            print("💾 Context saved successfully")
         } catch {
             print("❌ Error saving context: \(error)")
             self.error = .savingFailed(error.localizedDescription)
         }
     }
     
-    // MARK: - Daily Reset Logic
+    func habitDescription(for habit: Habit) -> String {
+        if let description = habit.goalDescription {
+            return description
+        } else {
+            return "Track your \(habit.name.lowercased()) habit"
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    func sortedHabits() -> [Habit] {
+        return habits.sorted { habit1, habit2 in
+            // Sort by completion status (incomplete first), then by creation date
+            if habit1.isGoalMet != habit2.isGoalMet {
+                return !habit1.isGoalMet && habit2.isGoalMet
+            }
+            return habit1.createdDate < habit2.createdDate
+        }
+    }
     
     func checkForMissedDays() {
         let calendar = Calendar.current
         let today = Date()
         
         for habit in habits {
-            guard let lastCompleted = habit.lastCompletedDate else { continue }
+            guard let lastCompletion = habit.lastCompletionDate else { continue }
             
-            // Only check build habits for missed days
-            if habit.habitType == .build && !calendar.isDateInToday(lastCompleted) {
-                let daysBetween = calendar.dateComponents([.day], from: lastCompleted, to: today).day ?? 0
-                
-                // If more than 1 day has passed, reset streak
-                if daysBetween > 1 {
-                    habit.resetStreak()
-                }
+            let daysBetween = calendar.dateComponents([.day], from: lastCompletion, to: today).day ?? 0
+            
+            if daysBetween > 1 {
+                // Missed days - reset streak and progress
+                habit.streak = 0
+                habit.currentProgress = 0
+                habit.isCompleted = false
+                print("📅 Reset streak for \(habit.name) due to missed days")
+            } else if daysBetween == 1 {
+                // New day - reset daily progress but keep streak
+                habit.currentProgress = 0
+                habit.isCompleted = false
+                print("🌅 Reset daily progress for \(habit.name)")
             }
         }
         
         saveContext()
-        objectWillChange.send()
-    }
-    
-    // MARK: - Habit Sorting
-    
-    func sortedHabits() -> [Habit] {
-        return habits.sorted { habit1, habit2 in
-            // First, prioritize habits that can be completed today
-            if habit1.canCompleteToday && !habit2.canCompleteToday {
-                return true
-            } else if !habit1.canCompleteToday && habit2.canCompleteToday {
-                return false
-            }
-            
-            // Then by streak length (longer streaks first)
-            if habit1.streak != habit2.streak {
-                return habit1.streak > habit2.streak
-            }
-            
-            // Finally by creation date (newer first)
-            return habit1.createdDate > habit2.createdDate
-        }
     }
     
     // MARK: - Debug Methods
@@ -242,12 +306,10 @@ final class HabitService: ObservableObject {
     // MARK: - Helper Methods
 }
 
-// MARK: - Habit Error Handling
+// MARK: - Habit Error
 
-enum HabitError: LocalizedError {
+enum HabitError: Error, LocalizedError {
     case invalidName
-    case alreadyCompleted
-    case invalidAction
     case loadingFailed(String)
     case savingFailed(String)
     case habitNotFound
@@ -257,10 +319,6 @@ enum HabitError: LocalizedError {
         switch self {
         case .invalidName:
             return "Please enter a valid habit name"
-        case .alreadyCompleted:
-            return "You've already completed this habit today"
-        case .invalidAction:
-            return "This action is not valid for this habit type"
         case .loadingFailed(let message):
             return "Failed to load habits: \(message)"
         case .savingFailed(let message):
