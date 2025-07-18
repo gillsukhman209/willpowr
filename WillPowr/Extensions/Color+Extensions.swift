@@ -11,7 +11,6 @@ extension Color {
     static let secondaryText = Color("SecondaryText")
     static let tertiaryText = Color("TertiaryText")
     
-    static let accent = Color("AccentColor")
     static let success = Color.green
     static let failure = Color.red
     static let warning = Color.orange

@@ -7,6 +7,7 @@ struct DashboardView: View {
     @State private var selectedHabit: Habit?
     @State private var showingHabitDetail = false
     @State private var showingDeleteConfirmation = false
+    @State private var showDebugControls = false // Toggle for debug UI
     
     var body: some View {
         NavigationView {
@@ -108,86 +109,101 @@ struct DashboardView: View {
                         
                         Spacer()
                         
-                        // Debug Controls
-                        HStack(spacing: 8) {
-                            // Date Controls
-                            if dateManager.isDebugging || true { // Always show for testing
-                                // Previous Day
-                                                            Button(action: {
-                                dateManager.moveBackwardOneDay()
-                            }) {
-                                    Image(systemName: "chevron.left")
-                                        .font(.caption)
-                                        .foregroundColor(.blue.opacity(0.8))
-                                        .frame(width: 28, height: 28)
-                                        .background(
-                                            Circle()
-                                                .fill(.ultraThinMaterial)
-                                                .overlay(
-                                                    Circle()
-                                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                                                )
-                                        )
-                                }
-                                .scaleEffect(0.8)
-                                
-                                // Reset to Today
-                                Button(action: {
-                                    dateManager.resetToToday()
-                                }) {
-                                    Image(systemName: dateManager.isDebugging ? "clock.arrow.circlepath" : "calendar")
-                                        .font(.caption)
-                                        .foregroundColor(dateManager.isDebugging ? .orange.opacity(0.8) : .blue.opacity(0.8))
-                                        .frame(width: 28, height: 28)
-                                        .background(
-                                            Circle()
-                                                .fill(.ultraThinMaterial)
-                                                .overlay(
-                                                    Circle()
-                                                        .stroke((dateManager.isDebugging ? Color.orange : Color.blue).opacity(0.3), lineWidth: 1)
-                                                )
-                                        )
-                                }
-                                .scaleEffect(0.8)
-                                
-                                // Next Day
-                                                            Button(action: {
-                                dateManager.moveForwardOneDay()
-                            }) {
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundColor(.blue.opacity(0.8))
-                                        .frame(width: 28, height: 28)
-                                        .background(
-                                            Circle()
-                                                .fill(.ultraThinMaterial)
-                                                .overlay(
-                                                    Circle()
-                                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                                                )
-                                        )
-                                }
-                                .scaleEffect(0.8)
-                            }
-                            
-                            // Debug trash button
+                        // Debug Toggle - Small Eyeball
+                        VStack(spacing: 4) {
                             Button(action: {
-                                showingDeleteConfirmation = true
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showDebugControls.toggle()
+                                }
                             }) {
-                                Image(systemName: "trash.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.red.opacity(0.7))
-                                    .frame(width: 28, height: 28)
-                                    .background(
-                                        Circle()
-                                            .fill(.ultraThinMaterial)
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.red.opacity(0.3), lineWidth: 1)
-                                            )
-                                    )
+                                Image(systemName: showDebugControls ? "eye.fill" : "eye")
+                                    .font(.caption2)
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .frame(width: 16, height: 16)
                             }
-                            .scaleEffect(0.8)
+                            .scaleEffect(0.7)
+                            
+                            // Debug Controls - Show when toggled
+                            if showDebugControls {
+                                HStack(spacing: 6) {
+                                    // Previous Day
+                                    Button(action: {
+                                        dateManager.moveBackwardOneDay()
+                                    }) {
+                                        Image(systemName: "chevron.left")
+                                            .font(.caption)
+                                            .foregroundColor(.blue.opacity(0.8))
+                                            .frame(width: 24, height: 24)
+                                            .background(
+                                                Circle()
+                                                    .fill(.ultraThinMaterial)
+                                                    .overlay(
+                                                        Circle()
+                                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                                    )
+                                            )
+                                    }
+                                    .scaleEffect(0.7)
+                                    
+                                    // Reset to Today
+                                    Button(action: {
+                                        dateManager.resetToToday()
+                                    }) {
+                                        Image(systemName: dateManager.isDebugging ? "clock.arrow.circlepath" : "calendar")
+                                            .font(.caption)
+                                            .foregroundColor(dateManager.isDebugging ? .orange.opacity(0.8) : .blue.opacity(0.8))
+                                            .frame(width: 24, height: 24)
+                                            .background(
+                                                Circle()
+                                                    .fill(.ultraThinMaterial)
+                                                    .overlay(
+                                                        Circle()
+                                                            .stroke((dateManager.isDebugging ? Color.orange : Color.blue).opacity(0.3), lineWidth: 1)
+                                                    )
+                                            )
+                                    }
+                                    .scaleEffect(0.7)
+                                    
+                                    // Next Day
+                                    Button(action: {
+                                        dateManager.moveForwardOneDay()
+                                    }) {
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption)
+                                            .foregroundColor(.blue.opacity(0.8))
+                                            .frame(width: 24, height: 24)
+                                            .background(
+                                                Circle()
+                                                    .fill(.ultraThinMaterial)
+                                                    .overlay(
+                                                        Circle()
+                                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                                    )
+                                            )
+                                    }
+                                    .scaleEffect(0.7)
+                                    
+                                    // Debug trash button
+                                    Button(action: {
+                                        showingDeleteConfirmation = true
+                                    }) {
+                                        Image(systemName: "trash.fill")
+                                            .font(.caption)
+                                            .foregroundColor(.red.opacity(0.7))
+                                            .frame(width: 24, height: 24)
+                                            .background(
+                                                Circle()
+                                                    .fill(.ultraThinMaterial)
+                                                    .overlay(
+                                                        Circle()
+                                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                                    )
+                                            )
+                                    }
+                                    .scaleEffect(0.7)
+                                }
+                                .transition(.scale.combined(with: .opacity))
+                            }
                         }
                     }
                 }

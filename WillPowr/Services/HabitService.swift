@@ -132,7 +132,10 @@ final class HabitService: ObservableObject {
     func completeHabit(_ habit: Habit) {
         print("🎯 Completing habit: \(habit.name)")
         
-        if habit.goalUnit == .none {
+        if habit.habitType == .quit {
+            // For quit habits, "completing" means successfully avoiding the bad habit
+            markQuitHabitSuccess(habit)
+        } else if habit.goalUnit == .none {
             // Binary completion (complete/incomplete)
             markHabitComplete(habit)
         } else {
@@ -222,6 +225,82 @@ final class HabitService: ObservableObject {
         saveContext()
     }
     
+    // MARK: - Quit Habit Helpers
+    
+    /// Check if a quit habit has been interacted with today (success or failure)
+    private func hasInteractedToday(_ habit: Habit) -> Bool {
+        guard habit.habitType == .quit else { return false }
+        
+        let today = dateManager.currentDate
+        let calendar = Calendar.current
+        
+        // Check if succeeded today
+        if let lastCompletion = habit.lastCompletionDate,
+           calendar.isDate(lastCompletion, inSameDayAs: today) {
+            return true
+        }
+        
+        // Check if failed today (streak = 0 and it's a quit habit could indicate recent failure)
+        // This is a simple heuristic - could be improved with a dedicated lastFailureDate property
+        if habit.streak == 0 && habit.habitType == .quit {
+            // Additional check: if this habit had a streak yesterday but has 0 today, 
+            // it likely failed today
+            return true
+        }
+        
+        return false
+    }
+    
+    func markQuitHabitSuccess(_ habit: Habit) {
+        let calendar = Calendar.current
+        let today = dateManager.currentDate
+        
+        print("✅ markQuitHabitSuccess called for: \(habit.name) on \(dateManager.formatDebugDate())")
+        print("   Previous streak: \(habit.streak)")
+        print("   Last success date: \(habit.lastCompletionDate?.description ?? "none")")
+        print("   Is completed: \(habit.isCompleted)")
+        
+        // Check if already marked successful today
+        if let lastCompletion = habit.lastCompletionDate,
+           calendar.isDate(lastCompletion, inSameDayAs: today) {
+            print("⚠️ Quit habit already marked successful today, skipping")
+            return
+        }
+        
+        // Update streak logic for quit habits - ONLY count consecutive explicit successes
+        if let lastSuccess = habit.lastCompletionDate {
+            let daysBetween = calendar.dateComponents([.day], from: lastSuccess, to: today).day ?? 0
+            print("   Days between last success and today: \(daysBetween)")
+            
+            if daysBetween == 1 {
+                // Consecutive successful day - increment streak
+                habit.streak += 1
+                print("   ✅ Consecutive success! New streak: \(habit.streak)")
+            } else {
+                // Gap in successes - reset streak to 1 (only today counts)
+                habit.streak = 1
+                print("   🔄 Gap detected - streak reset to: \(habit.streak)")
+            }
+        } else {
+            // First success ever
+            habit.streak = 1
+            print("   🎉 First quit habit success! Streak set to: \(habit.streak)")
+        }
+        
+        // Mark as successful
+        habit.isCompleted = true
+        habit.lastCompletionDate = today
+        
+        // Update longest streak if we've achieved a new record
+        if habit.streak > habit.longestStreak {
+            habit.longestStreak = habit.streak
+            print("🏆 NEW QUIT HABIT RECORD! Longest streak updated to: \(habit.longestStreak)")
+        }
+        
+        print("✅ Quit habit marked successful: \(habit.name), Final streak: \(habit.streak), Longest ever: \(habit.longestStreak)")
+        saveContext()
+    }
+    
     func failHabit(_ habit: Habit) {
         print("❌ Failing habit: \(habit.name)")
         
@@ -230,12 +309,23 @@ final class HabitService: ObservableObject {
             return
         }
         
+        let today = dateManager.currentDate
+        let calendar = Calendar.current
+        
+        // Check if already marked successful today - prevent changing success to failure
+        if let lastCompletion = habit.lastCompletionDate,
+           calendar.isDate(lastCompletion, inSameDayAs: today) && habit.isCompleted {
+            print("⚠️ Already succeeded today, cannot change to failure")
+            return
+        }
+        
         // Reset streak and progress
         habit.streak = 0
         habit.currentProgress = 0
         habit.isCompleted = false
-        habit.lastCompletionDate = dateManager.currentDate
+        // Don't set lastCompletionDate for failures - only track successful completions
         
+        print("❌ Habit failed: \(habit.name), Streak reset to: 0")
         saveContext()
     }
     

@@ -197,43 +197,141 @@ struct HabitCard: View {
     // MARK: - Action Section
     
     private var actionSection: some View {
-        Button {
-            handleAction()
-        } label: {
-            HStack {
-                Image(systemName: actionButtonIcon)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                
-                Text(actionButtonText)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-            }
-            .foregroundColor(.white)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(actionButtonGradient)
-                    .overlay(
+        VStack(spacing: 12) {
+            if habit.habitType == .quit {
+                // Quit habits need both success and failure buttons
+                // Success button
+                Button {
+                    markQuitHabitSuccess()
+                } label: {
+                    HStack {
+                        Image(systemName: habit.isCompleted ? "checkmark.circle.fill" : "checkmark.circle")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        
+                        Text(habit.isCompleted ? "Succeeded Today" : "I Succeeded Today")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 14)
+                    .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(
+                            .fill(
                                 LinearGradient(
-                                    colors: [.white.opacity(0.2), .clear],
+                                    colors: habit.isCompleted ? 
+                                        [.green.opacity(1.0), .green.opacity(0.8)] :
+                                        [.green.opacity(0.8), .green.opacity(0.6)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
+                                )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [.white.opacity(0.2), .clear],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
                             )
                     )
-            )
-            .shadow(color: actionButtonShadow, radius: 8, x: 0, y: 4)
+                    .shadow(color: .green.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(habit.isCompleted)
+                .opacity(habit.isCompleted ? 0.8 : 1.0)
+                
+                // Failure button
+                Button {
+                    failHabit()
+                } label: {
+                    HStack {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        
+                        Text("I Failed")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.red.opacity(0.8), .red.opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [.white.opacity(0.2), .clear],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                    )
+                    .shadow(color: .red.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(habit.isCompleted)
+                .opacity(habit.isCompleted ? 0.5 : 1.0)
+            } else {
+                // Build habits - single button
+                Button {
+                    handleAction()
+                } label: {
+                    HStack {
+                        Image(systemName: actionButtonIcon)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        
+                        Text(actionButtonText)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(actionButtonGradient)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [.white.opacity(0.2), .clear],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                    )
+                    .shadow(color: actionButtonShadow, radius: 8, x: 0, y: 4)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(!habit.canComplete(on: dateManager.currentDate) && habit.habitType == .build)
+                .opacity((!habit.canComplete(on: dateManager.currentDate) && habit.habitType == .build) ? 0.6 : 1.0)
+            }
         }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(!habit.canComplete(on: dateManager.currentDate) && habit.habitType == .build)
-        .opacity((!habit.canComplete(on: dateManager.currentDate) && habit.habitType == .build) ? 0.6 : 1.0)
         .overlay(
             successOverlay
         )
@@ -388,16 +486,6 @@ struct HabitCard: View {
     
     // MARK: - Actions
     
-    private func handleAction() {
-        if habit.habitType == .build {
-            if !habit.isGoalMet {
-                completeHabit()
-            }
-        } else {
-            failHabit()
-        }
-    }
-    
     private func completeHabit() {
         if !habit.isGoalMet {
             habitService?.completeHabit(habit)
@@ -419,6 +507,22 @@ struct HabitCard: View {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 showingSuccess = false
             }
+        }
+    }
+    
+    private func markQuitHabitSuccess() {
+        habitService?.markQuitHabitSuccess(habit)
+        showSuccessAnimation()
+    }
+    
+    private func handleAction() {
+        if habit.habitType == .build {
+            if !habit.isGoalMet {
+                completeHabit()
+            }
+        } else {
+            // This shouldn't be called for quit habits anymore since we have separate buttons
+            failHabit()
         }
     }
 }

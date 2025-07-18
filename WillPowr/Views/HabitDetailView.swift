@@ -157,6 +157,29 @@ struct HabitDetailView: View {
                     .opacity(0.6)
                 }
             } else {
+                // Quit habits - show both success and failure options
+                if !habit.isCompleted {
+                    // Success button
+                    Button {
+                        habitService?.markQuitHabitSuccess(habit)
+                        dismiss()
+                    } label: {
+                        actionButtonLabel(
+                            icon: "checkmark.circle.fill",
+                            text: "I Succeeded Today",
+                            color: .green
+                        )
+                    }
+                } else {
+                    actionButtonLabel(
+                        icon: "checkmark.circle.fill",
+                        text: "Already Succeeded Today",
+                        color: .green
+                    )
+                    .opacity(0.6)
+                }
+                
+                // Failure button (always available)
                 Button {
                     habitService?.failHabit(habit)
                     dismiss()
