@@ -1,0 +1,168 @@
+---
+description: Rules for building a scalable, premium, futuristic habit app with high performance and modern UI.
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# 💎 Million-Dollar SwiftUI App Rulebook
+
+You're helping build a premium, scalable SwiftUI app that lets users **build or quit habits**. Every UI and logic decision must reflect polish, performance, and modern design — like an app made by a top-tier iOS product team.
+
+---
+
+## 🧱 Architecture & Folder Structure
+
+- Use **Swift** with modern concurrency (async/await).
+- Follow **MVVM** architecture pattern strictly.
+- No business logic inside SwiftUI Views.
+- State management with **@StateObject**, **@ObservedObject**, and **@EnvironmentObject**.
+- Folder structure:
+
+```
+WillPowr/
+├── App/
+│   ├── WillPowrApp.swift
+│   └── ContentView.swift
+├── Views/
+│   ├── Home/
+│   ├── HabitTracker/
+│   ├── Settings/
+│   └── Onboarding/
+├── ViewModels/
+├── Models/
+├── Services/
+│   ├── HealthKitService.swift
+│   ├── NotificationService.swift
+│   └── DataService.swift
+├── Extensions/
+├── Utilities/
+└── Resources/
+```
+
+---
+
+## ✨ UI & UX Guidelines
+
+- Design must feel **futuristic**, **polished**, and **premium**.
+- Use **SwiftUI** native animations and transitions.
+- Prefer glassmorphism, gradients, blur effects, soft shadows.
+- Animate with **withAnimation()**, **@State**, and **AnimatableModifier**.
+- Interactions should be smooth and snappy (60fps).
+- Use **redacted(reason: .placeholder)** for loading states.
+- Support **Dark Mode** and **Dynamic Type** always.
+- Prioritize accessibility with **accessibilityLabel**, **accessibilityHint**.
+- Add useful empty states, error messages, and smooth transitions.
+- Use **SF Symbols** for consistent iconography.
+
+---
+
+## ✅ Habit Logic
+
+### Add Habit Flow
+
+1. User chooses: Build or Quit
+2. Select preset or custom habit
+3. Preset = preconfigured logic (e.g., steps = HealthKit, reading = timer)
+4. If user denies permissions, fallback to simple checkmark button
+5. Add habit card to dashboard with:
+   - Type (Build/Quit)
+   - Current streak
+   - Completion method (auto or manual)
+   - Widget-ready display
+
+---
+
+## 📱 Smart Inputs by Habit Type
+
+- **Run** → HealthKit step/distance tracking
+- **Walk** → Step count from HealthKit
+- **Gym** → CoreLocation gym detection
+- **Reading / Meditation** → In-app timer with background support
+- **Wake Up Early** → Button appears only at selected time
+- **Pushups / Water / Gratitude** → Manual checkmark
+
+### Quit Habits
+
+- **Porn / Sugar / Vape / Social Media** → "I Failed" button resets streak
+- **Screen Time** → Advanced (future) feature: ScreenTime API integration
+
+---
+
+## 🧪 Performance Checklist
+
+- Keep View updates minimal (proper **@State** usage).
+- Use **LazyVStack/LazyHStack** for large lists.
+- Optimize with **@ViewBuilder** and conditional rendering.
+- Preload critical data on app launch.
+- Optimize images with **AsyncImage** and caching.
+- Target < 1s cold-start load time.
+- Use **@MainActor** for UI updates.
+- Avoid heavy computations in View body.
+
+---
+
+## 🧾 SwiftUI Code Quality Checklist
+
+- ✅ **Type-safe everywhere** with proper Swift types
+- ✅ **Clean reusable Views** (no massive view files)
+- ✅ **ViewModels** for reusable logic and state
+- ✅ **Proper state management** (@State, @StateObject, @ObservedObject)
+- ✅ **PreviewProvider** for every View
+- ✅ **Extension** usage for View modifiers
+- ✅ **Dependency injection** via Environment
+
+---
+
+## 📐 SwiftUI Best Practices
+
+### View Organization
+
+- Each SwiftUI View in its own file
+- Max 200 lines per View file
+- Use **@ViewBuilder** for complex layouts
+- Extract subviews when > 50 lines
+
+### State Management
+
+- **@State** for local UI state
+- **@StateObject** for view-owned objects
+- **@ObservedObject** for injected objects
+- **@EnvironmentObject** for app-wide state
+
+### Naming Conventions
+
+- `HabitTrackerView.swift`
+- `HabitTrackerViewModel.swift`
+- `HabitModel.swift`
+- `HabitService.swift`
+
+### Performance
+
+- Use **LazyVStack** for long lists
+- Implement **Equatable** for complex models
+- Use **@ViewBuilder** to reduce View updates
+- Cache expensive computations
+
+---
+
+## 🔐 Security & Privacy
+
+- Request **HealthKit** permissions gracefully
+- Handle **Location** permissions properly
+- Use **Keychain** for sensitive data
+- Follow **App Store Review Guidelines**
+- Implement proper **data encryption**
+
+---
+
+## 🎯 Premium Features
+
+- **Haptic feedback** for interactions
+- **Widgets** for home screen
+- **Shortcuts** integration
+- **Apple Watch** companion app
+- **iCloud** sync across devices
+- **Premium animations** and transitions
+
+- ✅ Error boundaries
+- ✅ Snapshot/unit tests for every screen & core component
