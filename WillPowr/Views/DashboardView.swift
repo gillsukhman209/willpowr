@@ -53,172 +53,23 @@ struct DashboardView: View {
     @ViewBuilder
     private func mainContent(habitService: HabitService) -> some View {
         ScrollView {
-            VStack(spacing: 32) {
-                // Header
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("WillPowr")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            
-                            Text("Build habits. Quit bad ones.")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.7))
-                            
-                            // Current Date Display - Always Visible
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack(spacing: 8) {
-                                    // Current date
-                                    Text(currentDateString)
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(dateManager.isDebugging ? .orange : .white)
-                                    
-                                    if dateManager.isDebugging {
-                                        Image(systemName: "clock.arrow.circlepath")
-                                            .font(.caption)
-                                            .foregroundColor(.orange)
-                                    }
-                                }
-                                
-                                // Debug mode indicator
-                                if dateManager.isDebugging {
-                                    Text("DEBUG MODE")
-                                        .font(.caption2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.orange)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(
-                                            Capsule()
-                                                .fill(Color.orange.opacity(0.2))
-                                                .overlay(
-                                                    Capsule()
-                                                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
-                                                )
-                                        )
-                                } else {
-                                    Text("Today")
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.6))
-                                }
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        // Debug Toggle - Small Eyeball
-                        VStack(spacing: 4) {
-                            Button(action: {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    showDebugControls.toggle()
-                                }
-                            }) {
-                                Image(systemName: showDebugControls ? "eye.fill" : "eye")
-                                    .font(.caption2)
-                                    .foregroundColor(.white.opacity(0.6))
-                                    .frame(width: 16, height: 16)
-                            }
-                            .scaleEffect(0.7)
-                            
-                            // Debug Controls - Show when toggled
-                            if showDebugControls {
-                                HStack(spacing: 6) {
-                                    // Previous Day
-                                    Button(action: {
-                                        dateManager.moveBackwardOneDay()
-                                    }) {
-                                        Image(systemName: "chevron.left")
-                                            .font(.caption)
-                                            .foregroundColor(.blue.opacity(0.8))
-                                            .frame(width: 24, height: 24)
-                                            .background(
-                                                Circle()
-                                                    .fill(.ultraThinMaterial)
-                                                    .overlay(
-                                                        Circle()
-                                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                                                    )
-                                            )
-                                    }
-                                    .scaleEffect(0.7)
-                                    
-                                    // Reset to Today
-                                    Button(action: {
-                                        dateManager.resetToToday()
-                                    }) {
-                                        Image(systemName: dateManager.isDebugging ? "clock.arrow.circlepath" : "calendar")
-                                            .font(.caption)
-                                            .foregroundColor(dateManager.isDebugging ? .orange.opacity(0.8) : .blue.opacity(0.8))
-                                            .frame(width: 24, height: 24)
-                                            .background(
-                                                Circle()
-                                                    .fill(.ultraThinMaterial)
-                                                    .overlay(
-                                                        Circle()
-                                                            .stroke((dateManager.isDebugging ? Color.orange : Color.blue).opacity(0.3), lineWidth: 1)
-                                                    )
-                                            )
-                                    }
-                                    .scaleEffect(0.7)
-                                    
-                                    // Next Day
-                                    Button(action: {
-                                        dateManager.moveForwardOneDay()
-                                    }) {
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundColor(.blue.opacity(0.8))
-                                            .frame(width: 24, height: 24)
-                                            .background(
-                                                Circle()
-                                                    .fill(.ultraThinMaterial)
-                                                    .overlay(
-                                                        Circle()
-                                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                                                    )
-                                            )
-                                    }
-                                    .scaleEffect(0.7)
-                                    
-                                    // Debug trash button
-                                    Button(action: {
-                                        showingDeleteConfirmation = true
-                                    }) {
-                                        Image(systemName: "trash.fill")
-                                            .font(.caption)
-                                            .foregroundColor(.red.opacity(0.7))
-                                            .frame(width: 24, height: 24)
-                                            .background(
-                                                Circle()
-                                                    .fill(.ultraThinMaterial)
-                                                    .overlay(
-                                                        Circle()
-                                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
-                                                    )
-                                            )
-                                    }
-                                    .scaleEffect(0.7)
-                                }
-                                .transition(.scale.combined(with: .opacity))
-                            }
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 24)
+            LazyVStack(spacing: 0) {
+                // Header Section
+                headerSection
+                    .padding(.top, 20)
+                    .padding(.bottom, 32)
                 
                 // Stats Cards
                 statsSection(habitService: habitService)
+                    .padding(.bottom, 32)
                 
                 // Habits Section
                 habitsSection(habitService: habitService)
                 
-                Spacer(minLength: 120)
+                // Bottom padding for floating button
+                Spacer()
+                    .frame(height: 120)
             }
-            .padding(.top, 60)
         }
         .overlay(
             // Floating Add Button
@@ -233,14 +84,14 @@ struct DashboardView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
-                            .frame(width: 64, height: 64)
+                            .frame(width: 56, height: 56)
                             .background(
                                 Circle()
                                     .fill(
                                         LinearGradient(
                                             gradient: Gradient(colors: [
-                                                Color.blue.opacity(0.8),
-                                                Color.purple.opacity(0.8)
+                                                Color.blue.opacity(0.9),
+                                                Color.purple.opacity(0.9)
                                             ]),
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
@@ -250,7 +101,7 @@ struct DashboardView: View {
                                         Circle()
                                             .stroke(
                                                 LinearGradient(
-                                                    colors: [.white.opacity(0.2), .clear],
+                                                    colors: [.white.opacity(0.3), .clear],
                                                     startPoint: .topLeading,
                                                     endPoint: .bottomTrailing
                                                 ),
@@ -258,12 +109,12 @@ struct DashboardView: View {
                                             )
                                     )
                             )
-                            .shadow(color: .blue.opacity(0.4), radius: 20, x: 0, y: 10)
+                            .shadow(color: .blue.opacity(0.4), radius: 15, x: 0, y: 8)
                     }
                     .scaleEffect(showingAddHabit ? 0.95 : 1.0)
                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showingAddHabit)
-                    .padding(.trailing, 24)
-                    .padding(.bottom, 40)
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 34)
                 }
             }
         )
@@ -276,116 +127,310 @@ struct DashboardView: View {
             }
         }
     }
+
+    // MARK: - Header Section
+    
+    private var headerSection: some View {
+        VStack(spacing: 24) {
+            // App Title and Subtitle
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("WillPowr")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                        
+                        Text("Build habits. Quit bad ones.")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    
+                    Spacer()
+                    
+                    // Debug Toggle - Small Eyeball
+                    VStack(spacing: 4) {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                showDebugControls.toggle()
+                            }
+                        }) {
+                            Image(systemName: showDebugControls ? "eye.fill" : "eye")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.5))
+                                .frame(width: 20, height: 20)
+                        }
+                        
+                        // Debug Controls - Show when toggled
+                        if showDebugControls {
+                            HStack(spacing: 8) {
+                                // Previous Day
+                                Button(action: {
+                                    dateManager.moveBackwardOneDay()
+                                }) {
+                                    Image(systemName: "chevron.left")
+                                        .font(.caption2)
+                                        .foregroundColor(.blue.opacity(0.8))
+                                        .frame(width: 24, height: 24)
+                                        .background(
+                                            Circle()
+                                                .fill(.ultraThinMaterial)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                                )
+                                        )
+                                }
+                                
+                                // Reset to Today
+                                Button(action: {
+                                    dateManager.resetToToday()
+                                }) {
+                                    Image(systemName: "house")
+                                        .font(.caption2)
+                                        .foregroundColor(.green.opacity(0.8))
+                                        .frame(width: 24, height: 24)
+                                        .background(
+                                            Circle()
+                                                .fill(.ultraThinMaterial)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                                                )
+                                        )
+                                }
+                                
+                                // Next Day
+                                Button(action: {
+                                    dateManager.moveForwardOneDay()
+                                }) {
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption2)
+                                        .foregroundColor(.blue.opacity(0.8))
+                                        .frame(width: 24, height: 24)
+                                        .background(
+                                            Circle()
+                                                .fill(.ultraThinMaterial)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                                )
+                                        )
+                                }
+                                
+                                // Debug trash button
+                                Button(action: {
+                                    showingDeleteConfirmation = true
+                                }) {
+                                    Image(systemName: "trash.fill")
+                                        .font(.caption2)
+                                        .foregroundColor(.red.opacity(0.7))
+                                        .frame(width: 24, height: 24)
+                                        .background(
+                                            Circle()
+                                                .fill(.ultraThinMaterial)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                                )
+                                        )
+                                }
+                            }
+                            .transition(.scale.combined(with: .opacity))
+                        }
+                    }
+                }
+            }
+            
+            // Date Display
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(currentDateString)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(dateManager.isDebugging ? .orange : .white)
+                    
+                    if dateManager.isDebugging {
+                        Text("DEBUG MODE")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.orange)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(
+                                Capsule()
+                                    .fill(Color.orange.opacity(0.2))
+                                    .overlay(
+                                        Capsule()
+                                            .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                                    )
+                            )
+                    } else {
+                        Text("Today")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                }
+                
+                Spacer()
+                
+                if dateManager.isDebugging {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.title3)
+                        .foregroundColor(.orange)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+    }
     
     @ViewBuilder
     private var errorContent: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 60))
+                .font(.system(size: 40))
                 .foregroundColor(.red)
+                .frame(width: 64, height: 64)
+                .background(
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            Circle()
+                                .stroke(.white.opacity(0.1), lineWidth: 1)
+                        )
+                )
             
-            Text("Service Not Available")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-            
-            Text("Unable to load habit service. Please restart the app.")
-                .font(.body)
-                .foregroundColor(.white.opacity(0.7))
-                .multilineTextAlignment(.center)
+            VStack(spacing: 8) {
+                Text("Service Not Available")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Text("Unable to load habit service. Please restart the app.")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+            }
         }
-        .padding(32)
+        .padding(.vertical, 32)
+        .padding(.horizontal, 24)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 16)
                         .stroke(.white.opacity(0.1), lineWidth: 1)
                 )
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
     }
     
     @ViewBuilder
     private func statsSection(habitService: HabitService) -> some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 16) {
-                StatCard(
-                    title: "Total Habits",
-                    value: "\(habitService.totalActiveHabits())",
-                    icon: "target",
-                    color: .indigo
-                )
-                
-                StatCard(
-                    title: "Completed Today",
-                    value: "\(habitService.habitsCompletedToday())",
-                    icon: "checkmark.circle.fill",
-                    color: .green
-                )
-            }
+        HStack(spacing: 16) {
+            StatCard(
+                title: "Total Habits",
+                value: "\(habitService.totalActiveHabits())",
+                icon: "target",
+                color: .indigo
+            )
+            
+            StatCard(
+                title: "Completed Today",
+                value: "\(habitService.habitsCompletedToday())",
+                icon: "checkmark.circle.fill",
+                color: .green
+            )
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
     }
-    
+
     @ViewBuilder
     private func habitsSection(habitService: HabitService) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            let sortedHabits = habitService.sortedHabits()
-            if !sortedHabits.isEmpty {
-                Text("Your Habits")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 24)
+        let sortedHabits = habitService.sortedHabits()
+        
+        if !sortedHabits.isEmpty {
+            VStack(alignment: .leading, spacing: 20) {
+                HStack {
+                    Text("Your Habits")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Text("\(sortedHabits.count)")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white.opacity(0.6))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(.ultraThinMaterial)
+                        )
+                }
+                .padding(.horizontal, 20)
                 
-                LazyVStack(spacing: 16) {
+                LazyVStack(spacing: 12) {
                     ForEach(sortedHabits) { habit in
                         HabitCard(habit: habit) {
                             selectedHabit = habit
                             showingHabitDetail = true
                         }
-                        .padding(.horizontal, 24)
+                        .padding(.horizontal, 20)
                     }
                 }
-            } else {
-                emptyStateView
             }
+        } else {
+            emptyStateView
         }
     }
-    
+
     // MARK: - Empty State
     
     private var emptyStateView: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "target")
-                .font(.system(size: 60))
-                .foregroundColor(.white.opacity(0.4))
-            
+        VStack(spacing: 20) {
             VStack(spacing: 16) {
-                Text("Start Your Journey")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                Image(systemName: "target")
+                    .font(.system(size: 40))
+                    .foregroundColor(.white.opacity(0.4))
+                    .frame(width: 64, height: 64)
+                    .background(
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                Circle()
+                                    .stroke(.white.opacity(0.1), lineWidth: 1)
+                            )
+                    )
                 
-                Text("Add your first habit and begin building the life you want.")
-                    .font(.body)
-                    .foregroundColor(.white.opacity(0.7))
-                    .multilineTextAlignment(.center)
+                VStack(spacing: 8) {
+                    Text("Start Your Journey")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    
+                    Text("Add your first habit and begin building the life you want.")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
             }
-            .padding(.horizontal, 32)
         }
-        .padding(.top, 60)
+        .padding(.vertical, 32)
         .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 16)
                         .stroke(.white.opacity(0.1), lineWidth: 1)
                 )
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
+        .padding(.top, 20)
     }
     
     // MARK: - Add Habit Button
@@ -558,32 +603,34 @@ struct StatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             HStack {
                 Image(systemName: icon)
-                    .font(.title3)
+                    .font(.headline)
                     .foregroundColor(color)
                 Spacer()
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(value)
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
                 Text(title)
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.7))
+                    .lineLimit(1)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(20)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 14)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 14)
                         .stroke(
                             LinearGradient(
                                 colors: [.white.opacity(0.2), .clear],
@@ -594,7 +641,7 @@ struct StatCard: View {
                         )
                 )
         )
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 3)
     }
 }
 

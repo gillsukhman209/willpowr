@@ -83,7 +83,7 @@ struct AddHabitView: View {
     @ViewBuilder
     private func mainContent(habitService: HabitService) -> some View {
         ScrollView {
-            LazyVStack(spacing: 32) {
+            LazyVStack(spacing: 40) {
                 // Header
                 headerSection
                 
@@ -99,55 +99,54 @@ struct AddHabitView: View {
                 
                 // Toggle Button
                 toggleButton
-                
-                Spacer(minLength: 120)
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 32)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 40) // Extra bottom padding for safe area
         }
     }
     
     @ViewBuilder
     private var errorContent: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 60))
+                .font(.system(size: 48))
                 .foregroundColor(.red)
             
             Text("Service Not Available")
-                .font(.title)
+                .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
             
             Text("Unable to load habit service. Please restart the app.")
-                .font(.body)
+                .font(.subheadline)
                 .foregroundColor(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
         }
-        .padding(32)
+        .padding(24)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 16)
                         .stroke(.white.opacity(0.1), lineWidth: 1)
                 )
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
     }
     
     // MARK: - Header Section
     
     private var headerSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             // Icon with floating animation
             ZStack {
                 Circle()
                     .fill(
                         RadialGradient(
                             colors: [
-                                Color.blue.opacity(0.3),
-                                Color.blue.opacity(0.1),
+                                Color.purple.opacity(0.3),
+                                Color.purple.opacity(0.1),
                                 Color.clear
                             ],
                             center: .center,
@@ -159,19 +158,19 @@ struct AddHabitView: View {
                     .blur(radius: 10)
                 
                 Image(systemName: "target")
-                    .font(.system(size: 40))
+                    .font(.system(size: 32))
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .background(
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
+                                    colors: [.purple.opacity(0.8), .purple.opacity(0.6)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(width: 64, height: 64)
+                            .frame(width: 56, height: 56)
                             .overlay(
                                 Circle()
                                     .stroke(
@@ -189,14 +188,14 @@ struct AddHabitView: View {
             .scaleEffect(animateContent ? 1 : 0.5)
             .animation(.spring(response: 0.8, dampingFraction: 0.6).delay(0.1), value: animateContent)
             
-            VStack(spacing: 12) {
+            VStack(spacing: 8) {
                 Text("Add New Habit")
-                    .font(.largeTitle)
+                    .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
                 Text("Choose a habit to build or quit")
-                    .font(.headline)
+                    .font(.subheadline)
                     .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
@@ -248,7 +247,7 @@ struct AddHabitView: View {
                 selectedHabitType = type
             }
         } label: {
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 // Icon
                 ZStack {
                     Circle()
@@ -259,7 +258,7 @@ struct AddHabitView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 56, height: 56)
+                        .frame(width: 48, height: 48)
                         .overlay(
                             Circle()
                                 .stroke(
@@ -273,26 +272,26 @@ struct AddHabitView: View {
                         )
                     
                     Image(systemName: icon)
-                        .font(.title2)
+                        .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                 }
                 .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
                 
-                VStack(spacing: 6) {
+                VStack(spacing: 4) {
                     Text(title)
                         .font(.headline)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                     
                     Text(subtitle)
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
                 }
             }
-            .padding(.vertical, 24)
-            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 16)
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 20)
@@ -322,15 +321,13 @@ struct AddHabitView: View {
     // MARK: - Preset Habits Section
     
     private func presetHabitsSection(habitService: HabitService) -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Text("Choose a preset habit")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
             let presets = selectedHabitType == .build ? PresetHabit.buildHabits : PresetHabit.quitHabits
-            
-            let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
             
             if presets.isEmpty {
                 Text("No preset habits available for this type.")
@@ -339,7 +336,9 @@ struct AddHabitView: View {
                     .multilineTextAlignment(.center)
                     .padding(.vertical, 40)
             } else {
-                LazyVGrid(columns: columns, spacing: 16) {
+                let columns = Array(repeating: GridItem(.flexible(), spacing: 20), count: 2)
+                
+                LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(Array(presets.enumerated()), id: \.element.name) { index, preset in
                         presetHabitCard(preset: preset, habitService: habitService)
                             .opacity(animateContent ? 1 : 0)
@@ -347,6 +346,7 @@ struct AddHabitView: View {
                             .animation(.easeOut(duration: 0.6).delay(0.4 + Double(index) * 0.1), value: animateContent)
                     }
                 }
+                .padding(.horizontal, 4) // Extra padding to prevent edge cutoff
             }
         }
     }
@@ -368,7 +368,7 @@ struct AddHabitView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 56, height: 56)
+                        .frame(width: 50, height: 50)
                         .overlay(
                             Circle()
                                 .stroke(
@@ -382,29 +382,29 @@ struct AddHabitView: View {
                         )
                     
                     Image(systemName: preset.iconName)
-                        .font(.title2)
+                        .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                 }
                 .shadow(color: habitTypeColor(for: preset.habitType).opacity(0.3), radius: 8, x: 0, y: 4)
                 
                 Text(preset.name)
-                    .font(.headline)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.8)
             }
-            .padding(.vertical, 24)
-            .padding(.horizontal, 16)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 12)
             .frame(maxWidth: .infinity)
-            .frame(height: 140)
+            .frame(minHeight: 120)
             .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 16)
                     .fill(.ultraThinMaterial)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 20)
+                        RoundedRectangle(cornerRadius: 16)
                             .stroke(
                                 LinearGradient(
                                     colors: [.white.opacity(0.2), .clear],
@@ -417,7 +417,7 @@ struct AddHabitView: View {
             )
             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
         }
-        .buttonStyle(PremiumButtonStyle())
+        .buttonStyle(PlainButtonStyle())
     }
     
     // MARK: - Custom Habit Section
@@ -429,11 +429,11 @@ struct AddHabitView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
-            VStack(spacing: 24) {
+            VStack(spacing: 20) {
                 // Habit Name Input
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Habit Name")
-                        .font(.headline)
+                        .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                     
@@ -442,9 +442,9 @@ struct AddHabitView: View {
                 }
                 
                 // Icon Selection
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Choose Icon")
-                        .font(.headline)
+                        .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                     
@@ -464,19 +464,19 @@ struct AddHabitView: View {
                     goalDescription = ""
                     showingGoalSettings = true
                 } label: {
-                    HStack {
+                    HStack(spacing: 8) {
                         Image(systemName: "plus.circle.fill")
-                            .font(.title3)
+                            .font(.headline)
                             .fontWeight(.semibold)
                         Text("Add Habit")
-                            .font(.title3)
+                            .font(.headline)
                             .fontWeight(.semibold)
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .padding(.vertical, 14)
                     .background(
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: 14)
                             .fill(
                                 LinearGradient(
                                     colors: [habitTypeColor(for: selectedHabitType).opacity(0.8), habitTypeColor(for: selectedHabitType).opacity(0.6)],
@@ -485,7 +485,7 @@ struct AddHabitView: View {
                                 )
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: 14)
                                     .stroke(
                                         LinearGradient(
                                             colors: [.white.opacity(0.2), .clear],
@@ -496,18 +496,18 @@ struct AddHabitView: View {
                                     )
                             )
                     )
-                    .shadow(color: habitTypeColor(for: selectedHabitType).opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: habitTypeColor(for: selectedHabitType).opacity(0.3), radius: 6, x: 0, y: 3)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .disabled(customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .opacity(customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
             }
-            .padding(24)
+            .padding(20)
             .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 16)
                     .fill(.ultraThinMaterial)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 20)
+                        RoundedRectangle(cornerRadius: 16)
                             .stroke(
                                 LinearGradient(
                                     colors: [.white.opacity(0.2), .clear],
@@ -530,16 +530,16 @@ struct AddHabitView: View {
     private var iconSelectionGrid: some View {
         let icons = ["star.fill", "heart.fill", "flame.fill", "bolt.fill", "leaf.fill", "drop.fill", "brain.head.profile", "dumbbell.fill", "book.fill", "bed.double.fill", "fork.knife", "figure.walk"]
         
-        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 6), spacing: 12) {
+        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 6), spacing: 10) {
             ForEach(icons, id: \.self) { icon in
                 Button {
                     selectedIcon = icon
                 } label: {
                     Image(systemName: icon)
-                        .font(.title3)
+                        .font(.callout)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
-                        .frame(width: 48, height: 48)
+                        .frame(width: 40, height: 40)
                         .background(
                             Circle()
                                 .fill(
@@ -567,7 +567,7 @@ struct AddHabitView: View {
                                         )
                                 )
                         )
-                        .shadow(color: selectedIcon == icon ? habitTypeColor(for: selectedHabitType).opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+                        .shadow(color: selectedIcon == icon ? habitTypeColor(for: selectedHabitType).opacity(0.3) : .clear, radius: 6, x: 0, y: 3)
                         .scaleEffect(selectedIcon == icon ? 1.05 : 1.0)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -584,25 +584,25 @@ struct AddHabitView: View {
                 showingPresets.toggle()
             }
         } label: {
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: showingPresets ? "pencil.circle.fill" : "grid.circle.fill")
-                    .font(.title3)
+                    .font(.headline)
                     .fontWeight(.semibold)
                 Text(showingPresets ? "Create Custom" : "Choose Preset")
-                    .font(.title3)
+                    .font(.headline)
                     .fontWeight(.semibold)
             }
             .foregroundColor(.white)
-            .padding(.vertical, 16)
-            .padding(.horizontal, 32)
+            .padding(.vertical, 14)
+            .padding(.horizontal, 24)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 14)
                     .fill(.ultraThinMaterial)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: 14)
                             .stroke(
                                 LinearGradient(
-                                    colors: [.blue.opacity(0.4), .purple.opacity(0.4)],
+                                    colors: [.white.opacity(0.2), .clear],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
@@ -610,7 +610,7 @@ struct AddHabitView: View {
                             )
                     )
             )
-            .shadow(color: .blue.opacity(0.2), radius: 8, x: 0, y: 4)
+            .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
         }
         .buttonStyle(PlainButtonStyle())
         .opacity(animateContent ? 1 : 0)
@@ -761,7 +761,7 @@ struct GoalSettingsView: View {
                                     RoundedRectangle(cornerRadius: 16)
                                         .fill(
                                             LinearGradient(
-                                                colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
+                                                colors: [.green.opacity(0.8), .green.opacity(0.6)],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
                                             )
@@ -778,9 +778,9 @@ struct GoalSettingsView: View {
                                                 )
                                         )
                                 )
-                                .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                                .shadow(color: .green.opacity(0.3), radius: 6, x: 0, y: 3)
                         }
-                        .buttonStyle(PremiumButtonStyle())
+                        .buttonStyle(PlainButtonStyle())
                         
                         // Cancel Button
                         Button(action: onCancel) {
@@ -925,7 +925,7 @@ struct GoalSettingsView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(
                                         LinearGradient(
-                                            colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
+                                            colors: [.gray.opacity(0.8), .gray.opacity(0.6)],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
@@ -942,9 +942,9 @@ struct GoalSettingsView: View {
                                             )
                                     )
                             )
-                            .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                     }
-                    .buttonStyle(PremiumButtonStyle())
+                    .buttonStyle(PlainButtonStyle())
                 }
                 .padding(20)
                 .background(
@@ -954,7 +954,7 @@ struct GoalSettingsView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(
                                     LinearGradient(
-                                        colors: [.blue.opacity(0.4), .clear],
+                                        colors: [.white.opacity(0.2), .clear],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ),
