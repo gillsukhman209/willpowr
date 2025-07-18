@@ -12,37 +12,62 @@ struct HabitCard: View {
     
     var body: some View {
         ZStack {
-            // Background - Make entire card tappable
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.clear)
-                .background(cardBackground)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(borderGradient, lineWidth: 1)
+            // Modern gradient background
+            RoundedRectangle(cornerRadius: 24)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.1, green: 0.15, blue: 0.25),
+                            Color(red: 0.05, green: 0.1, blue: 0.2),
+                            Color(red: 0.08, green: 0.12, blue: 0.22)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                 )
-                .contentShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.15),
+                                    Color.white.opacity(0.05),
+                                    Color.clear
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 24))
                 .onTapGesture {
                     print("🎯 Card tapped for habit: \(habit.name)")
                     onTap()
                 }
             
             // Content
-            VStack(spacing: 20) {
-                // Header - Allow tap-through to background
-                headerSection
-                    .allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: 24) {
+                // Header with icon and streak
+                modernHeader
                 
-                // Progress Section - Allow tap-through to background
-                progressSection
-                    .allowsHitTesting(false)
+                // Large progress display
+                progressDisplay
                 
-                // Action Section - Allow button interactions
-                actionSection
-                    .allowsHitTesting(true)
+                // Progress bar
+                progressBar
+                
+                // Bottom stats
+                bottomStats
+                
+                // Action buttons (only if needed)
+                if !habit.isCompleted || habit.habitType == .quit {
+                    actionButtons
+                }
             }
-            .padding(24)
+            .padding(20)
         }
-        .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
+        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 8)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
@@ -50,7 +75,245 @@ struct HabitCard: View {
         }, perform: {})
     }
     
-    // MARK: - Header Section
+    // MARK: - Modern Header Section
+    
+    private var modernHeader: some View {
+        HStack {
+            // Icon and habit name
+            HStack(spacing: 12) {
+                Image(systemName: habit.iconName)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+                    .frame(width: 24, height: 24)
+                
+                Text(habit.name)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            
+            Spacer()
+            
+            // Streak badge
+            HStack(spacing: 6) {
+                Image(systemName: "flame.fill")
+                    .font(.caption)
+                    .foregroundColor(.orange)
+                
+                Text("\(habit.streak) day streak")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.orange)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.orange.opacity(0.15))
+            )
+        }
+    }
+    
+    // MARK: - Progress Display
+    
+    private var progressDisplay: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Large progress numbers
+            HStack(alignment: .lastTextBaseline, spacing: 8) {
+                Text(progressDisplayText)
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                
+                if !habit.goalUnit.displayName.isEmpty {
+                    Text(habit.goalUnit.displayName)
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(.gray)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Progress Bar
+    
+    private var progressBar: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Progress bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 8)
+                    
+                    // Progress fill
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(
+                            LinearGradient(
+                                colors: [.blue, .blue.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * progressPercentage, height: 8)
+                }
+            }
+            .frame(height: 8)
+            
+            // Progress details
+            HStack {
+                Text("\(Int(progressPercentage * 100))% Complete")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.gray)
+                
+                Spacer()
+                
+                if let timeToGoal = timeToGoalText {
+                    Text(timeToGoal)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.blue)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Bottom Stats
+    
+    private var bottomStats: some View {
+        HStack {
+            // Days completed
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(habit.streak)")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
+                
+                Text("DAYS COMPLETED")
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            // Divider
+            Rectangle()
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 1, height: 40)
+            
+            Spacer()
+            
+            // Days remaining or goal info
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(habit.goalTarget > 0 ? "\(Int(habit.goalTarget - habit.currentProgress))" : "∞")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
+                
+                Text(habit.goalTarget > 0 ? "REMAINING" : "DAILY GOAL")
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(.top, 8)
+    }
+    
+    // MARK: - Action Buttons
+    
+    private var actionButtons: some View {
+        HStack(spacing: 12) {
+            if habit.habitType == .build {
+                if !habit.isGoalMet {
+                    modernActionButton(
+                        title: "Complete",
+                        icon: "checkmark.circle.fill",
+                        color: .green,
+                        action: completeHabit
+                    )
+                }
+            } else { // quit habit
+                modernActionButton(
+                    title: "Stay Strong",
+                    icon: "checkmark.circle.fill", 
+                    color: .green,
+                    action: markQuitHabitSuccess
+                )
+                
+                modernActionButton(
+                    title: "I Failed",
+                    icon: "xmark.circle.fill",
+                    color: .red,
+                    action: failHabit
+                )
+            }
+        }
+        .padding(.top, 8)
+    }
+    
+    private func modernActionButton(title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+            }
+            .foregroundColor(color)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(color.opacity(0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(color.opacity(0.3), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    // MARK: - Helper Properties
+    
+    private var progressDisplayText: String {
+        if habit.goalTarget > 0 {
+            return "\(Int(habit.currentProgress))/\(Int(habit.goalTarget))"
+        } else {
+            return "\(Int(habit.currentProgress))"
+        }
+    }
+    
+    private var progressPercentage: Double {
+        guard habit.goalTarget > 0 else { return 0 }
+        return min(habit.currentProgress / habit.goalTarget, 1.0)
+    }
+    
+    private var timeToGoalText: String? {
+        guard habit.goalTarget > 0, habit.currentProgress < habit.goalTarget else { return nil }
+        let remaining = habit.goalTarget - habit.currentProgress
+        
+        // Simple time estimate (this could be made more sophisticated)
+        switch habit.goalUnit {
+        case .steps:
+            let minutes = Int(remaining / 100) // rough estimate: 100 steps per minute
+            return "~\(minutes)m to goal"
+        case .minutes:
+            return "~\(Int(remaining))m to goal"
+        case .hours:
+            return "~\(Int(remaining))h to goal"
+        default:
+            return "~\(Int(remaining)) to goal"
+        }
+    }
+    
+    // MARK: - Legacy Header Section (keeping for compatibility)
     
     private var headerSection: some View {
         HStack(spacing: 16) {
