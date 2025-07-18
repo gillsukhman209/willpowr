@@ -359,10 +359,6 @@ final class HabitService: ObservableObject {
         }.count
     }
     
-    func longestStreak() -> Int {
-        return habits.map { $0.longestStreak }.max() ?? 0
-    }
-    
     // MARK: - Habit Validation
     
     func habitExists(name: String) -> Bool {

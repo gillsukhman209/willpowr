@@ -323,13 +323,6 @@ struct DashboardView: View {
                     icon: "checkmark.circle.fill",
                     color: .green
                 )
-                
-                StatCard(
-                    title: "Longest Streak",
-                    value: "\(habitService.longestStreak())",
-                    icon: "flame.fill",
-                    color: .orange
-                )
             }
         }
         .padding(.horizontal, 24)

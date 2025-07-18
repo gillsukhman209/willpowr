@@ -103,6 +103,7 @@ struct HabitDetailView: View {
     
     private var statsSection: some View {
         VStack(spacing: 16) {
+            // Current Streak
             HStack {
                 Image(systemName: "flame.fill")
                     .font(.title)
@@ -114,6 +115,36 @@ struct HabitDetailView: View {
                         .foregroundColor(.fallbackSecondaryText)
                     
                     Text("\(habit.streak) days")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.fallbackPrimaryText)
+                }
+                
+                Spacer()
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.fallbackGlassBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.fallbackGlassBorder, lineWidth: 0.5)
+                    )
+                    .shadow(color: Color.fallbackGlassShadow, radius: 4, x: 0, y: 2)
+            )
+            
+            // Longest Streak (Personal Best)
+            HStack {
+                Image(systemName: "trophy.fill")
+                    .font(.title)
+                    .foregroundColor(.yellow)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Personal Best")
+                        .font(.headline)
+                        .foregroundColor(.fallbackSecondaryText)
+                    
+                    Text("\(habit.longestStreak) days")
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundColor(.fallbackPrimaryText)
