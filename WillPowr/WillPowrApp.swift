@@ -74,6 +74,9 @@ struct AppRootView: View {
     let modelContainer: ModelContainer
     @State private var habitService: HabitService?
     @StateObject private var dateManager = DateManager()
+    @StateObject private var healthKitService = HealthKitService()
+    @AppStorage("hasShownPermissions") private var hasShownPermissions = false
+    @State private var showPermissions = false
     
     var body: some View {
         Group {
@@ -81,6 +84,11 @@ struct AppRootView: View {
                 ContentView()
                     .environmentObject(habitService)
                     .environmentObject(dateManager)
+                    .environmentObject(healthKitService)
+                    .sheet(isPresented: $showPermissions) {
+                        PermissionsView()
+                            .environmentObject(healthKitService)
+                    }
             } else {
                 ProgressView("Loading...")
                     .progressViewStyle(CircularProgressViewStyle())
@@ -94,6 +102,16 @@ struct AppRootView: View {
             // Create HabitService on MainActor
             let service = HabitService(modelContext: modelContainer.mainContext, dateManager: dateManager)
             habitService = service
+            
+            // Check HealthKit authorization status
+            healthKitService.checkAuthorizationStatus()
+            
+            // Show permissions popup on first launch
+            if !hasShownPermissions {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showPermissions = true
+                }
+            }
         }
     }
 }

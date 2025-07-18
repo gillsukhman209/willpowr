@@ -3,6 +3,7 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject private var habitService: HabitService
     @EnvironmentObject private var dateManager: DateManager
+    @EnvironmentObject private var healthKitService: HealthKitService
     @State private var showingAddHabit = false
     @State private var selectedHabit: Habit?
     @State private var showingDeleteConfirmation = false
@@ -226,6 +227,26 @@ struct DashboardView: View {
                                                 .overlay(
                                                     Circle()
                                                         .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                                )
+                                        )
+                                }
+                                
+                                // Health Data Fetch Button
+                                Button(action: {
+                                    Task {
+                                        await healthKitService.fetchAllHealthData()
+                                    }
+                                }) {
+                                    Image(systemName: "heart.text.square.fill")
+                                        .font(.caption2)
+                                        .foregroundColor(.pink.opacity(0.8))
+                                        .frame(width: 24, height: 24)
+                                        .background(
+                                            Circle()
+                                                .fill(.ultraThinMaterial)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.pink.opacity(0.3), lineWidth: 1)
                                                 )
                                         )
                                 }
