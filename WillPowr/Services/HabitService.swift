@@ -405,11 +405,11 @@ final class HabitService: ObservableObject {
     
     func sortedHabits() -> [Habit] {
         return habits.sorted { habit1, habit2 in
-            // Sort by completion status (incomplete first), then by creation date
+            // Sort by completion status (incomplete first), then by creation date (newest first)
             if habit1.isGoalMet != habit2.isGoalMet {
                 return !habit1.isGoalMet && habit2.isGoalMet
             }
-            return habit1.createdDate < habit2.createdDate
+            return habit1.createdDate > habit2.createdDate // Newest habits appear first
         }
     }
     
