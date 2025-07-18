@@ -8,43 +8,45 @@ struct HabitCard: View {
     @EnvironmentObject private var dateManager: DateManager
     @State private var isPressed = false
     @State private var showingSuccess = false
-    @State private var showingConfirmation = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Main Content
+        ZStack {
+            // Background - Make entire card tappable
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.clear)
+                .background(cardBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(borderGradient, lineWidth: 1)
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 20))
+                .onTapGesture {
+                    print("🎯 Card tapped for habit: \(habit.name)")
+                    onTap()
+                }
+            
+            // Content
             VStack(spacing: 20) {
-                // Header
+                // Header - Allow tap-through to background
                 headerSection
+                    .allowsHitTesting(false)
                 
-                // Progress Section
+                // Progress Section - Allow tap-through to background
                 progressSection
+                    .allowsHitTesting(false)
                 
-                // Action Button
+                // Action Section - Allow button interactions
                 actionSection
+                    .allowsHitTesting(true)
             }
             .padding(24)
         }
-        .background(cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(borderGradient, lineWidth: 1)
-        )
         .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
-        .onTapGesture {
-            onTap()
-        }
-        .alert("Reset Streak?", isPresented: $showingConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Reset", role: .destructive) {
-                habitService?.resetHabitStreak(habit)
-            }
-        } message: {
-            Text("This will reset your streak to 0. This action cannot be undone.")
-        }
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
     
     // MARK: - Header Section
@@ -98,26 +100,6 @@ struct HabitCard: View {
             }
             
             Spacer()
-            
-            // Menu Button
-            Menu {
-                Button("View Details") {
-                    onTap()
-                }
-                
-                Button("Reset Streak", role: .destructive) {
-                    showingConfirmation = true
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.title3)
-                    .foregroundColor(.white.opacity(0.6))
-                    .frame(width: 32, height: 32)
-                    .background(
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                    )
-            }
         }
     }
     

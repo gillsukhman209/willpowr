@@ -5,66 +5,149 @@ struct HabitDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.habitService) private var habitService
     @EnvironmentObject private var dateManager: DateManager
+    @State private var showDeleteConfirmation = false
+    @State private var showResetConfirmation = false
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black
-                    .ignoresSafeArea()
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Custom Navigation Header
+                customNavigationHeader
                 
-                if habitService != nil {
+                // Main Content
+                if let habitService = habitService {
                     mainContent
                 } else {
-                    errorContent
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") {
-                        dismiss()
+                    VStack {
+                        Text("Service Loading...")
+                            .foregroundColor(.white)
+                            .font(.title2)
+                        Text("HabitService is nil")
+                            .foregroundColor(.red)
+                            .font(.caption)
                     }
-                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+        }
+        .confirmationDialog(
+            "Delete Habit",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                deleteHabit()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete \"\(habit.name)\"? This action cannot be undone.")
+        }
+        .confirmationDialog(
+            "Reset Streak",
+            isPresented: $showResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset", role: .destructive) {
+                resetHabitStreak()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This will reset your streak to 0. This action cannot be undone.")
+        }
+        .onAppear {
+            print("🔍 HabitDetailView appeared for habit: \(habit.name)")
+            print("🔍 HabitService is: \(habitService == nil ? "nil" : "available")")
         }
     }
     
-    @ViewBuilder
-    private var mainContent: some View {
-        VStack(spacing: 24) {
-            // Header
-            headerSection
-            
-            // Stats
-            statsSection
-            
-            // Actions
-            actionsSection
+    private var customNavigationHeader: some View {
+        HStack {
+            Button("Done") {
+                dismiss()
+            }
+            .foregroundColor(.gray)
+            .font(.body)
             
             Spacer()
+            
+            Text("Habit Details")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            
+            Spacer()
+            
+            Button {
+                showDeleteConfirmation = true
+            } label: {
+                Image(systemName: "trash")
+                    .foregroundColor(.red)
+                    .font(.body)
+            }
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.black)
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Header
+                headerSection
+                
+                // Stats
+                statsSection
+                
+                // Reset Action
+                resetSection
+                
+                // Actions
+                actionsSection
+            }
+            .padding(20)
+        }
+    }
+    
+    // MARK: - Actions
+    
+    private func deleteHabit() {
+        habitService?.deleteHabit(habit)
+        dismiss()
+    }
+    
+    private func resetHabitStreak() {
+        habitService?.resetHabitStreak(habit)
     }
     
     @ViewBuilder
     private var errorContent: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 60))
-                .foregroundColor(.red)
+        VStack {
+            Spacer()
             
-            Text("Service Not Available")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
+            VStack(spacing: 20) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 60))
+                    .foregroundColor(.red)
+                
+                Text("Service Not Available")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Text("Unable to load habit service. Please restart the app.")
+                    .font(.body)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
             
-            Text("Unable to load habit service. Please restart the app.")
-                .font(.body)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
+            Spacer()
         }
-        .padding()
     }
     
     private var headerSection: some View {
@@ -242,6 +325,45 @@ struct HabitDetailView: View {
                 .fill(color)
                 .shadow(color: color.opacity(0.3), radius: 4, x: 0, y: 2)
         )
+    }
+    
+    private var resetSection: some View {
+        Button {
+            showResetConfirmation = true
+        } label: {
+            HStack {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.headline)
+                    .foregroundColor(.orange)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Reset Streak")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    
+                    Text("Start over from day 0")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(.white.opacity(0.1), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
     
     private var habitTypeColor: Color {

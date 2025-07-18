@@ -55,6 +55,7 @@ final class HabitService: ObservableObject {
     
     func loadHabits() {
         print("📥 Loading habits...")
+        print("📥 Model context: \(modelContext)")
         isLoading = true
         
         do {
@@ -63,6 +64,9 @@ final class HabitService: ObservableObject {
             )
             habits = try modelContext.fetch(descriptor)
             print("✅ Loaded \(habits.count) habits")
+            for habit in habits {
+                print("📱 Habit: \(habit.name) - Created: \(habit.createdDate)")
+            }
         } catch {
             print("❌ Error loading habits: \(error)")
             self.error = .loadingFailed(error.localizedDescription)
@@ -376,6 +380,7 @@ final class HabitService: ObservableObject {
         do {
             try modelContext.save()
             print("💾 Context saved successfully")
+            print("💾 Current habits count after save: \(habits.count)")
         } catch {
             print("❌ Error saving context: \(error)")
             self.error = .savingFailed(error.localizedDescription)

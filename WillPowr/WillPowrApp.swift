@@ -14,30 +14,49 @@ struct WillPowrApp: App {
         let schema = Schema([
             Habit.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
+        
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            print("❌ Failed to create ModelContainer: \(error)")
+            // Create a simple, persistent ModelContainer
+            let container = try ModelContainer(for: schema)
+            print("✅ Successfully created persistent ModelContainer")
             
-            // Try to create a fresh container by clearing the store
-            do {
-                let freshConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-                let freshContainer = try ModelContainer(for: schema, configurations: [freshConfiguration])
-                print("✅ Created fresh ModelContainer after clearing store")
-                return freshContainer
-            } catch {
-                print("❌ Failed to create fresh ModelContainer: \(error)")
-                // As a last resort, use in-memory storage
+            // Get the actual storage location
+            if let storeURL = container.configurations.first?.url {
+                print("📂 Persistent storage at: \(storeURL.path)")
+                print("📂 Storage exists: \(FileManager.default.fileExists(atPath: storeURL.path))")
+            } else {
+                print("⚠️ No storage URL found")
+            }
+            
+            return container
+        } catch {
+            print("❌ ModelContainer creation failed: \(error)")
+            
+            // Handle migration errors by deleting the old store
+            if error.localizedDescription.contains("migration") || error.localizedDescription.contains("134110") {
+                print("🔧 Attempting to fix migration issue by clearing old data...")
+                
+                // Try to delete the old store and create a fresh one
                 do {
-                    let inMemoryConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-                    let inMemoryContainer = try ModelContainer(for: schema, configurations: [inMemoryConfiguration])
-                    print("⚠️ Using in-memory storage as fallback")
-                    return inMemoryContainer
+                    let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+                    let storeURL = appSupportURL.appendingPathComponent("default.store")
+                    
+                    if FileManager.default.fileExists(atPath: storeURL.path) {
+                        try FileManager.default.removeItem(at: storeURL)
+                        print("🗑️ Deleted old database file")
+                    }
+                    
+                    // Create fresh container
+                    let freshContainer = try ModelContainer(for: schema)
+                    print("✅ Created fresh ModelContainer after clearing old data")
+                    return freshContainer
+                    
                 } catch {
-                    fatalError("Could not create any ModelContainer: \(error)")
+                    print("❌ Failed to create fresh container: \(error)")
+                    fatalError("Cannot run app without persistent storage: \(error)")
                 }
+            } else {
+                fatalError("Cannot run app without persistent storage: \(error)")
             }
         }
     }()
