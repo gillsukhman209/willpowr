@@ -236,4 +236,23 @@ struct PremiumCardStyle: ViewModifier {
                     }
             )
     }
-} 
+}
+
+// MARK: - Keyboard Dismiss
+
+struct KeyboardDismissModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .onTapGesture {
+                // Dismiss keyboard when tapping anywhere
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+    }
+}
+
+extension View {
+    /// Adds tap-to-dismiss keyboard functionality
+    func dismissKeyboardOnTap() -> some View {
+        self.modifier(KeyboardDismissModifier())
+    }
+}

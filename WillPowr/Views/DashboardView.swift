@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DashboardView: View {
-    @Environment(\.habitService) private var habitService
+    @EnvironmentObject private var habitService: HabitService
     @EnvironmentObject private var dateManager: DateManager
     @State private var showingAddHabit = false
     @State private var selectedHabit: Habit?
@@ -27,22 +27,18 @@ struct DashboardView: View {
                 // Floating orbs for depth
                 FloatingOrbs()
                 
-                if let habitService = habitService {
-                    mainContent(habitService: habitService)
-                } else {
-                    errorContent
-                }
+                mainContent(habitService: habitService)
             }
         }
         .navigationBarHidden(true)
         .onAppear {
             print("📱 DashboardView appeared")
-            habitService?.loadHabits()
+            habitService.loadHabits()
         }
         .alert("Reset App?", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Delete All", role: .destructive) {
-                habitService?.deleteAllHabits()
+                habitService.deleteAllHabits()
             }
         } message: {
             Text("This will permanently delete all habits and reset the app to a fresh state. This action cannot be undone.")
@@ -497,7 +493,7 @@ struct DashboardView: View {
     private func refreshHabits() async {
         await Task { @MainActor in
             print("🔄 DashboardView: Refreshing habits")
-            habitService?.loadHabits()
+            habitService.loadHabits()
         }.value
     }
 }
@@ -509,80 +505,50 @@ struct FloatingOrbs: View {
     
     var body: some View {
         ZStack {
-            // Large orb
+            // Optimized Large orb - reduced blur and simplified gradient
             Circle()
                 .fill(
-                    RadialGradient(
+                    LinearGradient(
                         colors: [
-                            Color.blue.opacity(0.15),
-                            Color.blue.opacity(0.05),
+                            Color.blue.opacity(0.08),
                             Color.clear
                         ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 100
+                        startPoint: .center,
+                        endPoint: .trailing
                     )
                 )
-                .frame(width: 200, height: 200)
-                .blur(radius: 20)
+                .frame(width: 180, height: 180)
+                .blur(radius: 8)
                 .offset(
-                    x: animate ? -50 : 50,
-                    y: animate ? -80 : 80
+                    x: animate ? -40 : 40,
+                    y: animate ? -60 : 60
                 )
                 .animation(
-                    .easeInOut(duration: 8)
+                    .linear(duration: 12)
                     .repeatForever(autoreverses: true),
                     value: animate
                 )
             
-            // Medium orb
+            // Optimized Medium orb
             Circle()
                 .fill(
-                    RadialGradient(
+                    LinearGradient(
                         colors: [
-                            Color.purple.opacity(0.12),
-                            Color.purple.opacity(0.04),
+                            Color.purple.opacity(0.06),
                             Color.clear
                         ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 80
+                        startPoint: .center,
+                        endPoint: .trailing
                     )
                 )
-                .frame(width: 160, height: 160)
-                .blur(radius: 15)
+                .frame(width: 140, height: 140)
+                .blur(radius: 6)
                 .offset(
-                    x: animate ? 80 : -80,
-                    y: animate ? 100 : -100
+                    x: animate ? 60 : -60,
+                    y: animate ? 80 : -80
                 )
                 .animation(
-                    .easeInOut(duration: 6)
-                    .repeatForever(autoreverses: true),
-                    value: animate
-                )
-            
-            // Small orb
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color.indigo.opacity(0.1),
-                            Color.indigo.opacity(0.03),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 60
-                    )
-                )
-                .frame(width: 120, height: 120)
-                .blur(radius: 10)
-                .offset(
-                    x: animate ? -30 : 30,
-                    y: animate ? -120 : 120
-                )
-                .animation(
-                    .easeInOut(duration: 10)
+                    .linear(duration: 16)
                     .repeatForever(autoreverses: true),
                     value: animate
                 )

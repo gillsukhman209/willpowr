@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AddHabitView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.habitService) private var habitService
+    @EnvironmentObject private var habitService: HabitService
     
     @State private var selectedHabitType: HabitType = .build
     @State private var customHabitName = ""
@@ -36,11 +36,7 @@ struct AddHabitView: View {
                 // Floating orbs for depth
                 FloatingOrbs()
                 
-                if let habitService = habitService {
-                    mainContent(habitService: habitService)
-                } else {
-                    errorContent
-                }
+                mainContent(habitService: habitService)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -65,12 +61,10 @@ struct AddHabitView: View {
                 goalUnit: $goalUnit,
                 goalDescription: $goalDescription,
                 onSave: {
-                    if let habitService = habitService {
-                        if selectedPreset != nil {
-                            finalizeHabit(habitService: habitService)
-                        } else {
-                            createCustomHabit(habitService: habitService)
-                        }
+                    if selectedPreset != nil {
+                        finalizeHabit(habitService: habitService)
+                    } else {
+                        createCustomHabit(habitService: habitService)
                     }
                 },
                 onCancel: {
@@ -78,6 +72,7 @@ struct AddHabitView: View {
                 }
             )
         }
+        .dismissKeyboardOnTap()
     }
     
     @ViewBuilder

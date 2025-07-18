@@ -79,7 +79,7 @@ struct AppRootView: View {
         Group {
             if let habitService = habitService {
                 ContentView()
-                    .environment(\.habitService, habitService)
+                    .environmentObject(habitService)
                     .environmentObject(dateManager)
             } else {
                 ProgressView("Loading...")

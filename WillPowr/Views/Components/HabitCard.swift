@@ -4,10 +4,11 @@ struct HabitCard: View {
     let habit: Habit
     let onTap: () -> Void
     
-    @Environment(\.habitService) private var habitService
+    @EnvironmentObject private var habitService: HabitService
     @EnvironmentObject private var dateManager: DateManager
     @State private var isPressed = false
     @State private var showingSuccess = false
+    @State private var showingFail = false
     
     var body: some View {
         ZStack {
@@ -315,7 +316,10 @@ struct HabitCard: View {
             }
         }
         .overlay(
-            successOverlay
+            ZStack {
+                successOverlay
+                failOverlay
+            }
         )
     }
     
@@ -347,6 +351,36 @@ struct HabitCard: View {
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: showingSuccess)
+    }
+    
+    // MARK: - Fail Overlay
+    
+    private var failOverlay: some View {
+        ZStack {
+            if showingFail {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            colors: [.red.opacity(0.9), .red.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        HStack {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                            Text("Streak reset")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.white)
+                    )
+                    .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: showingFail)
     }
     
     // MARK: - Computed Properties
@@ -470,14 +504,14 @@ struct HabitCard: View {
     
     private func completeHabit() {
         if !habit.isGoalMet {
-            habitService?.completeHabit(habit)
+                            habitService.completeHabit(habit)
             showSuccessAnimation()
         }
     }
     
     private func failHabit() {
-        habitService?.failHabit(habit)
-        showSuccessAnimation()
+        habitService.failHabit(habit)
+        showFailAnimation()
     }
     
     private func showSuccessAnimation() {
@@ -492,8 +526,20 @@ struct HabitCard: View {
         }
     }
     
+    private func showFailAnimation() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            showingFail = true
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                showingFail = false
+            }
+        }
+    }
+    
     private func markQuitHabitSuccess() {
-        habitService?.markQuitHabitSuccess(habit)
+        habitService.markQuitHabitSuccess(habit)
         showSuccessAnimation()
     }
     

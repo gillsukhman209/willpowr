@@ -3,7 +3,7 @@ import SwiftUI
 struct HabitDetailView: View {
     let habit: Habit
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.habitService) private var habitService
+    @EnvironmentObject private var habitService: HabitService
     @EnvironmentObject private var dateManager: DateManager
     @State private var showDeleteConfirmation = false
     @State private var showResetConfirmation = false
@@ -31,8 +31,7 @@ struct HabitDetailView: View {
                 premiumNavigationHeader
                 
                 // Main Content
-                if habitService != nil {
-                    ScrollView {
+                ScrollView {
                         VStack(spacing: 24) {
                             // Hero Section
                             heroSection
@@ -56,9 +55,6 @@ struct HabitDetailView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
                     }
-                } else {
-                    errorStateView
-                }
             }
         }
         .confirmationDialog(
@@ -87,7 +83,7 @@ struct HabitDetailView: View {
         }
         .onAppear {
             print("🔍 HabitDetailView appeared for habit: \(habit.name)")
-            print("🔍 HabitService is: \(habitService == nil ? "nil" : "available")")
+            print("🔍 HabitService is: available")
         }
     }
     
@@ -378,7 +374,7 @@ struct HabitDetailView: View {
                     if habit.canComplete(on: dateManager.currentDate) {
                         Button {
                             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                                habitService?.completeHabit(habit)
+                                habitService.completeHabit(habit)
                                 dismiss()
                             }
                         } label: {
@@ -402,7 +398,7 @@ struct HabitDetailView: View {
                     if !habit.isCompleted {
                         Button {
                             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                                habitService?.markQuitHabitSuccess(habit)
+                                habitService.markQuitHabitSuccess(habit)
                                 dismiss()
                             }
                         } label: {
@@ -424,7 +420,7 @@ struct HabitDetailView: View {
                     
                     Button {
                         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                            habitService?.failHabit(habit)
+                            habitService.failHabit(habit)
                             dismiss()
                         }
                     } label: {
@@ -505,13 +501,13 @@ struct HabitDetailView: View {
     
     private func deleteHabit() {
         print("🗑️ Deleting habit: \(habit.name)")
-        habitService?.deleteHabit(habit)
+        habitService.deleteHabit(habit)
         print("🗑️ Habit deleted, dismissing detail view")
         dismiss()
     }
     
     private func resetHabitStreak() {
-        habitService?.resetHabitStreak(habit)
+        habitService.resetHabitStreak(habit)
     }
     
     // MARK: - Computed Properties
