@@ -121,7 +121,11 @@ struct DashboardView: View {
         .sheet(isPresented: $showingAddHabit) {
             AddHabitView()
         }
-        .sheet(isPresented: $showingHabitDetail) {
+        .sheet(isPresented: $showingHabitDetail, onDismiss: {
+            // Clear selected habit when sheet dismisses
+            selectedHabit = nil
+            print("🏠 Dashboard: Cleared selectedHabit on sheet dismiss")
+        }) {
             if let habit = selectedHabit {
                 HabitDetailView(habit: habit)
             }
@@ -374,6 +378,7 @@ struct DashboardView: View {
                 LazyVStack(spacing: 12) {
                     ForEach(sortedHabits) { habit in
                         HabitCard(habit: habit) {
+                            print("🏠 Dashboard: Selected habit '\(habit.name)' for detail view")
                             selectedHabit = habit
                             showingHabitDetail = true
                         }

@@ -116,7 +116,9 @@ struct HabitDetailView: View {
     // MARK: - Actions
     
     private func deleteHabit() {
+        print("🗑️ Deleting habit: \(habit.name)")
         habitService?.deleteHabit(habit)
+        print("🗑️ Habit deleted, dismissing detail view")
         dismiss()
     }
     

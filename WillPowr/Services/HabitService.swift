@@ -121,9 +121,15 @@ final class HabitService: ObservableObject {
     }
     
     func deleteHabit(_ habit: Habit) {
+        print("🗑️ HabitService: Deleting habit '\(habit.name)' (ID: \(habit.id))")
+        print("🗑️ Habits before delete: \(habits.count)")
+        
         modelContext.delete(habit)
         saveContext()
         loadHabits()
+        
+        print("🗑️ Habits after delete: \(habits.count)")
+        print("🗑️ Remaining habits: \(habits.map { $0.name })")
     }
     
     func updateHabit(_ habit: Habit) {
