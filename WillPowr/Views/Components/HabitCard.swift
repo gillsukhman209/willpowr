@@ -123,8 +123,10 @@ struct HabitCard: View {
             // Large progress numbers with tracking indicator
             HStack(alignment: .lastTextBaseline, spacing: 8) {
                 Text(progressDisplayText)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .font(.system(size: progressFontSize, weight: .bold, design: .rounded))
                     .foregroundColor(habit.trackingMode == .automatic ? Color.blue : Color.white)
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
                 
                 if !habit.goalUnit.displayName.isEmpty {
                     HStack(spacing: 4) {
@@ -181,10 +183,10 @@ struct HabitCard: View {
             
             // Progress details
             HStack {
-                Text("\(Int(progressPercentage * 100))% Complete")
+                Text(progressPercentage >= 1.0 ? "Goal Complete!" : "\(Int(progressPercentage * 100))% Complete")
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.gray)
+                    .foregroundColor(progressPercentage >= 1.0 ? .green : .gray)
                 
                 Spacer()
                 
@@ -334,6 +336,25 @@ struct HabitCard: View {
             return "\(Int(habit.currentProgress))/\(Int(habit.goalTarget))"
         } else {
             return "\(Int(habit.currentProgress))"
+        }
+    }
+    
+    private var progressFontSize: CGFloat {
+        let text = progressDisplayText
+        let textLength = text.count
+        
+        // Adjust font size based on text length to ensure it fits on one line
+        switch textLength {
+        case 0...6:
+            return 48 // "100/200" = 7 chars
+        case 7...9:
+            return 40 // "1000/2000" = 9 chars  
+        case 10...12:
+            return 36 // "10000/20000" = 11 chars
+        case 13...15:
+            return 32 // "100000/200000" = 13 chars
+        default:
+            return 28 // Really long numbers
         }
     }
     

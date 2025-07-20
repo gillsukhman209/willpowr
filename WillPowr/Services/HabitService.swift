@@ -202,8 +202,8 @@ final class HabitService: ObservableObject {
         // Track if habit was already completed today before adding progress
         let wasAlreadyCompleted = habit.isCompleted
         
-        // Add progress
-        habit.currentProgress = min(habit.currentProgress + progress, habit.goalTarget)
+        // Add progress (don't cap at goal - let it continue beyond)
+        habit.currentProgress += progress
         
         // Check if goal is met and habit wasn't already completed today
         if habit.currentProgress >= habit.goalTarget && !wasAlreadyCompleted {

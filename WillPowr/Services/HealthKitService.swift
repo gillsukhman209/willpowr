@@ -87,13 +87,16 @@ final class HealthKitService: ObservableObject {
     }
     
     private func checkReadAccess(status: HKAuthorizationStatus) async {
+        DispatchQueue.main.async {
+            self.authorizationStatus = status
+        }
+        
         do {
             // Try to fetch today's steps to test read access
             let steps = try await getStepsForDate(Date())
             print("🏥 Read access test successful - fetched \(Int(steps)) steps")
             
             DispatchQueue.main.async {
-                self.authorizationStatus = status
                 self.isAuthorized = true // We can read data, so we're authorized
                 print("🏥 Updated isAuthorized: true (read access confirmed)")
             }
@@ -101,9 +104,15 @@ final class HealthKitService: ObservableObject {
             print("🏥 Read access test failed: \(error.localizedDescription)")
             
             DispatchQueue.main.async {
-                self.authorizationStatus = status
-                self.isAuthorized = false
-                print("🏥 Updated isAuthorized: false (no read access)")
+                // Be more lenient - if status suggests permission might be granted, 
+                // don't immediately assume we're not authorized
+                if status == .sharingAuthorized || status == .notDetermined {
+                    self.isAuthorized = true // Give benefit of the doubt
+                    print("🏥 Read test failed but status suggests permissions granted - assuming authorized")
+                } else {
+                    self.isAuthorized = false
+                    print("🏥 Updated isAuthorized: false (no read access and status indicates denial)")
+                }
             }
         }
     }
@@ -121,22 +130,48 @@ final class HealthKitService: ObservableObject {
         
         print("✅ HealthKit permission request completed")
         
-        // Test if we actually got read access by trying to fetch data
+        // Check authorization status (this is more reliable than immediate data fetch)
+        let stepCountType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+        let status = healthStore.authorizationStatus(for: stepCountType)
+        
+        print("🏥 Authorization status after request: \(status)")
+        
+        // Update authorization state based on status
+        DispatchQueue.main.async {
+            // If user allowed sharing or if status is undetermined (read-only grants),
+            // we'll assume authorization and test data access later
+            if status == .sharingAuthorized || status == .notDetermined {
+                self.isAuthorized = true
+                print("🏥 Permissions likely granted - status: \(status)")
+            } else {
+                self.isAuthorized = false
+                print("🏥 Permissions denied - status: \(status)")
+            }
+            self.authorizationStatus = status
+        }
+        
+        // Try to verify read access, but don't fail if it doesn't work immediately
         do {
             let steps = try await getStepsForDate(Date())
             print("🏥 Permission verification: Successfully read \(Int(steps)) steps")
-            
-            DispatchQueue.main.async {
-                self.isAuthorized = true
-                print("🏥 Permissions granted - read access confirmed")
-            }
         } catch {
-            print("🏥 Permission verification failed: \(error.localizedDescription)")
-            DispatchQueue.main.async {
-                self.isAuthorized = false
-            }
-            throw HealthKitError.authorizationDenied
+            print("🏥 Permission verification failed (but continuing): \(error.localizedDescription)")
+            // Don't throw here - the user may have granted permissions but data isn't available yet
         }
+        
+        // Refresh the authorization status check after a brief delay to catch any changes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            Task {
+                await self.refreshAuthorizationStatus()
+            }
+        }
+    }
+    
+    // MARK: - Authorization Refresh
+    
+    func refreshAuthorizationStatus() async {
+        print("🔄 Refreshing HealthKit authorization status...")
+        checkAuthorizationStatus()
     }
     
     // MARK: - Data Fetching Methods

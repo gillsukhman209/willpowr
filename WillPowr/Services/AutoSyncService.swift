@@ -188,10 +188,9 @@ final class AutoSyncService: ObservableObject {
             }
             
             // Always update progress for automatic habits to show real-time data
-            let newProgress = min(progressValue, habit.goalTarget)
-            let wasUpdated = abs(newProgress - previousProgress) >= 0.1 // Any change counts
+            let wasUpdated = abs(progressValue - previousProgress) >= 0.1 // Any change counts
             
-            habit.currentProgress = newProgress
+            habit.currentProgress = progressValue
             
             // Check if goal was just completed
             if progressValue >= habit.goalTarget && !habit.isCompleted {

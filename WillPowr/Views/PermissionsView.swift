@@ -203,6 +203,13 @@ struct PermissionsView: View {
             } catch {
                 await MainActor.run {
                     isRequestingPermissions = false
+                    
+                    // Even if there was an error, refresh authorization status
+                    // in case user actually granted permissions
+                    Task {
+                        await healthKitService.refreshAuthorizationStatus()
+                    }
+                    
                     errorMessage = error.localizedDescription
                     showError = true
                 }
