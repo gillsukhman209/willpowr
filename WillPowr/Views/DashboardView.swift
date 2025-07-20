@@ -36,6 +36,11 @@ struct DashboardView: View {
         .onAppear {
             print("📱 DashboardView appeared")
             habitService.loadHabits()
+            
+            // Trigger health data sync when dashboard appears
+            Task {
+                await autoSyncService.syncAllHabits()
+            }
         }
         .alert("Reset App?", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) { }
@@ -67,6 +72,10 @@ struct DashboardView: View {
                 Spacer()
                     .frame(height: 120)
             }
+        }
+        .refreshable {
+            print("🔄 Pull-to-refresh triggered - syncing health data")
+            await refreshHabits()
         }
         .overlay(
             // Floating Add Button
@@ -554,7 +563,12 @@ struct DashboardView: View {
     
     private func refreshHabits() async {
         await Task { @MainActor in
-            print("🔄 DashboardView: Refreshing habits")
+            print("🔄 DashboardView: Refreshing habits and health data")
+            
+            // Force sync health data first
+            await autoSyncService.forceSync()
+            
+            // Then refresh habits to show updated data
             habitService.loadHabits()
         }.value
     }

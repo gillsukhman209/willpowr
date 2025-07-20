@@ -15,8 +15,8 @@ final class AutoSyncService: ObservableObject {
     private var syncTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     
-    // Sync frequency in seconds (5 minutes for frequent updates)
-    private let syncInterval: TimeInterval = 300
+    // Sync frequency in seconds (2 minutes for very frequent updates)
+    private let syncInterval: TimeInterval = 120
     
     init(habitService: HabitService, healthKitService: HealthKitService, dateManager: DateManager) {
         self.habitService = habitService
@@ -40,12 +40,31 @@ final class AutoSyncService: ObservableObject {
         // Start auto sync timer
         startAutoSync()
         
-        // Listen for app becoming active to sync data
+        // Listen for app becoming active (coming from background or launching)
         NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
             .sink { [weak self] _ in
+                print("📱 App became active - syncing health data")
                 Task { @MainActor in
                     await self?.syncAllHabits()
                 }
+            }
+            .store(in: &cancellables)
+            
+        // Listen for app entering foreground (more specific than didBecomeActive)
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+            .sink { [weak self] _ in
+                print("📱 App entering foreground - syncing health data")
+                Task { @MainActor in
+                    await self?.syncAllHabits()
+                }
+            }
+            .store(in: &cancellables)
+            
+        // Listen for app going to background (to clean up resources if needed)
+        NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
+            .sink { [weak self] _ in
+                print("📱 App entering background")
+                // Could add cleanup logic here if needed
             }
             .store(in: &cancellables)
         
@@ -87,7 +106,7 @@ final class AutoSyncService: ObservableObject {
             }
         }
         
-        print("🔄 AutoSync started - will sync every \(Int(syncInterval / 60)) minutes")
+        print("🔄 AutoSync started - will sync every \(Int(syncInterval / 60)) minutes (\(Int(syncInterval))s)")
     }
     
     func stopAutoSync() {
@@ -112,6 +131,13 @@ final class AutoSyncService: ObservableObject {
         
         guard healthKitService.isAuthorized else {
             print("⚠️ HealthKit not authorized - skipping auto sync")
+            return
+        }
+        
+        // Check if we've synced recently (unless it's a force sync)
+        if let lastSync = lastSyncTime,
+           Date().timeIntervalSince(lastSync) < 30 { // 30 seconds minimum between syncs
+            print("⏳ Last sync was \(Int(Date().timeIntervalSince(lastSync))) seconds ago - skipping duplicate sync")
             return
         }
         
@@ -214,6 +240,18 @@ final class AutoSyncService: ObservableObject {
     func manualSync() async {
         print("🔄 Manual sync requested")
         await syncAllHabits()
+    }
+    
+    func forceSync() async {
+        print("🔄 Force sync requested - immediate health data refresh")
+        let previousLastSync = lastSyncTime
+        lastSyncTime = nil // Reset to force fresh data and bypass time check
+        await syncAllHabits()
+        
+        // If sync was successful, update lastSyncTime
+        if lastSyncTime == nil {
+            lastSyncTime = Date()
+        }
     }
     
     // MARK: - Permissions Check

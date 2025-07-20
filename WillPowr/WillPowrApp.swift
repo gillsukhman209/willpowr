@@ -127,7 +127,13 @@ struct WillPowrApp: App {
                             // Check HealthKit authorization status with read access test
             healthKitService.checkAuthorizationStatus()
             
-            // The authorization check will automatically trigger sync via the publisher if authorized
+            // Trigger initial sync after services are set up
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                Task {
+                    print("🚀 App launched - triggering initial health data sync")
+                    await syncService.syncAllHabits()
+                }
+            }
                 
                 // Show permissions popup on first launch
                 if !hasShownPermissions {
