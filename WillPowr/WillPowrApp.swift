@@ -33,8 +33,8 @@ struct WillPowrApp: App {
             print("❌ ModelContainer creation failed: \(error)")
             
             // Handle migration errors by deleting the old store
-            if error.localizedDescription.contains("migration") || error.localizedDescription.contains("134110") {
-                print("🔧 Attempting to fix migration issue by clearing old data...")
+            if error.localizedDescription.contains("migration") || error.localizedDescription.contains("134110") || error.localizedDescription.contains("cast") || error.localizedDescription.contains("TrackingMode") {
+                print("🔧 Schema change detected - clearing old data to prevent migration issues...")
                 
                 // Try to delete the old store and create a fresh one
                 do {
@@ -43,12 +43,24 @@ struct WillPowrApp: App {
                     
                     if FileManager.default.fileExists(atPath: storeURL.path) {
                         try FileManager.default.removeItem(at: storeURL)
-                        print("🗑️ Deleted old database file")
+                        print("🗑️ Deleted old database file for schema migration")
+                    }
+                    
+                    // Also try to clean up any related files
+                    let storeWalURL = appSupportURL.appendingPathComponent("default.store-wal")
+                    let storeShmURL = appSupportURL.appendingPathComponent("default.store-shm")
+                    
+                    if FileManager.default.fileExists(atPath: storeWalURL.path) {
+                        try? FileManager.default.removeItem(at: storeWalURL)
+                    }
+                    
+                    if FileManager.default.fileExists(atPath: storeShmURL.path) {
+                        try? FileManager.default.removeItem(at: storeShmURL)
                     }
                     
                     // Create fresh container
                     let freshContainer = try ModelContainer(for: schema)
-                    print("✅ Created fresh ModelContainer after clearing old data")
+                    print("✅ Created fresh ModelContainer after schema migration")
                     return freshContainer
                     
                 } catch {
@@ -60,7 +72,7 @@ struct WillPowrApp: App {
             }
         }
     }()
-
+    
     var body: some Scene {
         WindowGroup {
             AppRootView(modelContainer: sharedModelContainer)
@@ -68,48 +80,60 @@ struct WillPowrApp: App {
                 .preferredColorScheme(.dark)
         }
     }
-}
-
-struct AppRootView: View {
-    let modelContainer: ModelContainer
-    @State private var habitService: HabitService?
-    @StateObject private var dateManager = DateManager()
-    @StateObject private var healthKitService = HealthKitService()
-    @AppStorage("hasShownPermissions") private var hasShownPermissions = false
-    @State private var showPermissions = false
     
-    var body: some View {
-        Group {
-            if let habitService = habitService {
-                ContentView()
-                    .environmentObject(habitService)
-                    .environmentObject(dateManager)
-                    .environmentObject(healthKitService)
-                    .sheet(isPresented: $showPermissions) {
-                        PermissionsView()
-                            .environmentObject(healthKitService)
-                    }
-            } else {
-                ProgressView("Loading...")
-                    .progressViewStyle(CircularProgressViewStyle())
-                    .scaleEffect(1.5)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black)
+    struct AppRootView: View {
+        let modelContainer: ModelContainer
+        @State private var habitService: HabitService?
+        @State private var autoSyncService: AutoSyncService?
+        @StateObject private var dateManager = DateManager()
+        @StateObject private var healthKitService = HealthKitService()
+        @AppStorage("hasShownPermissions") private var hasShownPermissions = false
+        @State private var showPermissions = false
+        
+        var body: some View {
+            Group {
+                if let habitService = habitService, let autoSyncService = autoSyncService {
+                    ContentView()
+                        .environmentObject(habitService)
+                        .environmentObject(dateManager)
+                        .environmentObject(healthKitService)
+                        .environmentObject(autoSyncService)
+                        .sheet(isPresented: $showPermissions) {
+                            PermissionsView()
+                                .environmentObject(healthKitService)
+                        }
+                } else {
+                    ProgressView("Loading...")
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .scaleEffect(1.5)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black)
+                }
             }
-        }
-        .task {
-            // Create HabitService on MainActor
-            let service = HabitService(modelContext: modelContainer.mainContext, dateManager: dateManager)
-            habitService = service
-            
-            // Check HealthKit authorization status
+            .task {
+                // Create HabitService on MainActor
+                let service = HabitService(modelContext: modelContainer.mainContext, dateManager: dateManager)
+                habitService = service
+                
+                // Create AutoSyncService after HabitService is available
+                let syncService = AutoSyncService(
+                    habitService: service,
+                    healthKitService: healthKitService,
+                    dateManager: dateManager
+                )
+                autoSyncService = syncService
+                
+                            // Check HealthKit authorization status with read access test
             healthKitService.checkAuthorizationStatus()
             
-            // Show permissions popup on first launch
-            if !hasShownPermissions {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showPermissions = true
+            // The authorization check will automatically trigger sync via the publisher if authorized
+                
+                // Show permissions popup on first launch
+                if !hasShownPermissions {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showPermissions = true
+                    }
                 }
             }
         }

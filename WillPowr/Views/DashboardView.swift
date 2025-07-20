@@ -4,6 +4,7 @@ struct DashboardView: View {
     @EnvironmentObject private var habitService: HabitService
     @EnvironmentObject private var dateManager: DateManager
     @EnvironmentObject private var healthKitService: HealthKitService
+    @EnvironmentObject private var autoSyncService: AutoSyncService
     @State private var showingAddHabit = false
     @State private var selectedHabit: Habit?
     @State private var showingDeleteConfirmation = false
@@ -28,7 +29,7 @@ struct DashboardView: View {
                 // Floating orbs for depth
                 FloatingOrbs()
                 
-                mainContent(habitService: habitService)
+                    mainContent(habitService: habitService)
             }
         }
         .navigationBarHidden(true)
@@ -130,15 +131,15 @@ struct DashboardView: View {
         VStack(spacing: 24) {
             // App Title and Subtitle
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
+                    HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("WillPowr")
+                            Text("WillPowr")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                        
-                        Text("Build habits. Quit bad ones.")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.white)
+                            
+                            Text("Build habits. Quit bad ones.")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.7))
                     }
                     
                     Spacer()
@@ -158,7 +159,7 @@ struct DashboardView: View {
                         
                         // Debug Controls - Show when toggled
                         if showDebugControls {
-                            HStack(spacing: 8) {
+                        HStack(spacing: 8) {
                                 // Previous Day
                                 Button(action: {
                                     dateManager.moveBackwardOneDay()
@@ -211,31 +212,52 @@ struct DashboardView: View {
                                                         .stroke(Color.blue.opacity(0.3), lineWidth: 1)
                                                 )
                                         )
-                                }
-                                
-                                // Debug trash button
-                                Button(action: {
-                                    showingDeleteConfirmation = true
-                                }) {
-                                    Image(systemName: "trash.fill")
+                            }
+                            
+                            // Debug trash button
+                            Button(action: {
+                                showingDeleteConfirmation = true
+                            }) {
+                                Image(systemName: "trash.fill")
                                         .font(.caption2)
-                                        .foregroundColor(.red.opacity(0.7))
+                                    .foregroundColor(.red.opacity(0.7))
                                         .frame(width: 24, height: 24)
-                                        .background(
-                                            Circle()
-                                                .fill(.ultraThinMaterial)
-                                                .overlay(
-                                                    Circle()
-                                                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
-                                                )
-                                        )
+                                    .background(
+                                        Circle()
+                                            .fill(.ultraThinMaterial)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                            )
+                                    )
+                            }
+                            
+                            // Schema reset button for migration issues
+                            Button(action: {
+                                Task {
+                                    print("🔄 Manual schema reset triggered")
+                                    await resetSchemaAndReload()
                                 }
+                            }) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.caption2)
+                                    .foregroundColor(.purple.opacity(0.7))
+                                    .frame(width: 24, height: 24)
+                                    .background(
+                                        Circle()
+                                            .fill(.ultraThinMaterial)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                                            )
+                                    )
+                            }
                                 
                                 // Health Data Fetch Button
                                 Button(action: {
                                     Task {
                                         await healthKitService.fetchAllHealthData()
-                                    }
+                        }
                                 }) {
                                     Image(systemName: "heart.text.square.fill")
                                         .font(.caption2)
@@ -250,19 +272,19 @@ struct DashboardView: View {
                                                 )
                                         )
                                 }
-                            }
+            }
                             .transition(.scale.combined(with: .opacity))
-                        }
+        }
                     }
                 }
             }
             
             // Date Display
-            HStack {
+                HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(currentDateString)
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                            .font(.title2)
+                            .fontWeight(.semibold)
                         .foregroundColor(dateManager.isDebugging ? .orange : .white)
                     
                     if dateManager.isDebugging {
@@ -295,8 +317,125 @@ struct DashboardView: View {
                         .foregroundColor(.orange)
                 }
             }
+            
+            // Auto Sync Status
+            syncStatusIndicator
         }
         .padding(.horizontal, 20)
+    }
+    
+    // MARK: - Sync Status Indicator
+    
+    private var syncStatusIndicator: some View {
+        HStack(spacing: 12) {
+            // Sync status icon
+            Image(systemName: autoSyncService.isAutoSyncEnabled ? "waveform.path.ecg" : "pause.circle")
+                .font(.caption)
+                .foregroundColor(autoSyncService.isAutoSyncEnabled ? Color.blue : Color.gray)
+            
+            // Sync status text
+            VStack(alignment: .leading, spacing: 2) {
+                Text(autoSyncService.isAutoSyncEnabled ? "Auto-sync enabled" : "Auto-sync paused")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.8))
+                
+                if let lastSync = autoSyncService.lastSyncTime {
+                    Text("Last sync: \(lastSync, formatter: DateFormatter.timeOnly)")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.5))
+                } else {
+                    Text("No sync yet")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
+            
+            Spacer()
+            
+            // Manual sync button
+            Button(action: {
+                Task {
+                    print("🔄 Manual sync button tapped")
+                    await autoSyncService.manualSync()
+                }
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.caption2)
+                    Text("Sync Now")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                }
+                .foregroundColor(.blue)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.blue.opacity(0.15))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(.blue.opacity(0.3), lineWidth: 1)
+                        )
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Toggle auto sync
+            Button(action: {
+                autoSyncService.toggleAutoSync()
+            }) {
+                Image(systemName: autoSyncService.isAutoSyncEnabled ? "pause.fill" : "play.fill")
+                    .font(.caption2)
+                    .foregroundColor(autoSyncService.isAutoSyncEnabled ? Color.orange : Color.green)
+                    .frame(width: 20, height: 20)
+                    .background(
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        (autoSyncService.isAutoSyncEnabled ? Color.orange : Color.green).opacity(0.3), 
+                                        lineWidth: 1
+                                    )
+                            )
+                    )
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(.white.opacity(0.1), lineWidth: 1)
+                )
+        )
+        .opacity(hasAutoTrackingHabits ? 1.0 : 0.0)
+        .animation(.easeInOut, value: hasAutoTrackingHabits)
+    }
+    
+    private var hasAutoTrackingHabits: Bool {
+        habitService.habits.contains { $0.trackingMode == .automatic }
+    }
+    
+    // MARK: - Schema Reset Helper
+    
+    private func resetSchemaAndReload() async {
+        print("🔧 Resetting schema and clearing database...")
+        
+        // Delete all habits to clear any corrupted data
+        habitService.deleteAllHabits()
+        
+        // Wait a moment then reload
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        
+        // Reload habits
+        habitService.loadHabits()
+        
+        print("✅ Schema reset completed")
     }
     
     @ViewBuilder
@@ -316,15 +455,15 @@ struct DashboardView: View {
                 )
             
             VStack(spacing: 8) {
-                Text("Service Not Available")
+            Text("Service Not Available")
                     .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                Text("Unable to load habit service. Please restart the app.")
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            Text("Unable to load habit service. Please restart the app.")
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.7))
-                    .multilineTextAlignment(.center)
+                .foregroundColor(.white.opacity(0.7))
+                .multilineTextAlignment(.center)
             }
         }
         .padding(.vertical, 32)
@@ -342,35 +481,35 @@ struct DashboardView: View {
     
     @ViewBuilder
     private func statsSection(habitService: HabitService) -> some View {
-        HStack(spacing: 16) {
-            StatCard(
-                title: "Total Habits",
-                value: "\(habitService.totalActiveHabits())",
-                icon: "target",
-                color: .indigo
-            )
-            
-            StatCard(
-                title: "Completed Today",
-                value: "\(habitService.habitsCompletedToday())",
-                icon: "checkmark.circle.fill",
-                color: .green
-            )
+            HStack(spacing: 16) {
+                StatCard(
+                    title: "Total Habits",
+                    value: "\(habitService.totalActiveHabits())",
+                    icon: "target",
+                    color: .indigo
+                )
+                
+                StatCard(
+                    title: "Completed Today",
+                    value: "\(habitService.habitsCompletedToday())",
+                    icon: "checkmark.circle.fill",
+                    color: .green
+                )
         }
         .padding(.horizontal, 20)
     }
-
+    
     @ViewBuilder
     private func habitsSection(habitService: HabitService) -> some View {
-        let sortedHabits = habitService.sortedHabits()
+            let sortedHabits = habitService.sortedHabits()
         
-        if !sortedHabits.isEmpty {
+            if !sortedHabits.isEmpty {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
-                    Text("Your Habits")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                Text("Your Habits")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
                     
                     Spacer()
                     
@@ -401,7 +540,7 @@ struct DashboardView: View {
             emptyStateView
         }
     }
-
+    
     // MARK: - Empty State
     
     private var emptyStateView: some View {
@@ -421,15 +560,15 @@ struct DashboardView: View {
                     )
                 
                 VStack(spacing: 8) {
-                    Text("Start Your Journey")
+                Text("Start Your Journey")
                         .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                    
-                    Text("Add your first habit and begin building the life you want.")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                
+                Text("Add your first habit and begin building the life you want.")
                         .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.7))
-                        .multilineTextAlignment(.center)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
                         .lineLimit(2)
                 }
             }

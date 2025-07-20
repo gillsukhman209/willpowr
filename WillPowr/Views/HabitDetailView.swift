@@ -9,20 +9,20 @@ struct HabitDetailView: View {
     @State private var showResetConfirmation = false
     
     var body: some View {
-        ZStack {
+            ZStack {
             // Premium Background with Gradient (matching main app)
             LinearGradient(
                 colors: [
                     Color(red: 0.05, green: 0.05, blue: 0.15),
                     Color(red: 0.1, green: 0.1, blue: 0.2),
                     Color(red: 0.15, green: 0.1, blue: 0.25),
-                    Color.black
+                Color.black
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .ignoresSafeArea()
-            
+                    .ignoresSafeArea()
+                
             // Floating orbs for depth (matching main app)
             FloatingOrbs()
             
@@ -55,8 +55,8 @@ struct HabitDetailView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
                     }
+                }
             }
-        }
         .confirmationDialog(
             "Delete Habit",
             isPresented: $showDeleteConfirmation,
@@ -76,7 +76,7 @@ struct HabitDetailView: View {
         ) {
             Button("Reset", role: .destructive) {
                 resetHabitStreak()
-            }
+                    }
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("This will reset your streak to 0. This action cannot be undone.")
@@ -84,8 +84,8 @@ struct HabitDetailView: View {
         .onAppear {
             print("🔍 HabitDetailView appeared for habit: \(habit.name)")
             print("🔍 HabitService is: available")
-        }
-    }
+                }
+            }
     
     // MARK: - Header
     
@@ -117,8 +117,8 @@ struct HabitDetailView: View {
                 Text("Habit Details")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white)
-                
-                Spacer()
+            
+            Spacer()
                 
                 Button {
                     showDeleteConfirmation = true
@@ -127,7 +127,7 @@ struct HabitDetailView: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.red.opacity(0.8))
                 }
-            }
+        }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
         }
@@ -167,7 +167,7 @@ struct HabitDetailView: View {
                     HStack(spacing: 6) {
                         Image(systemName: habit.habitType == .build ? "plus.circle.fill" : "minus.circle.fill")
                             .font(.system(size: 12, weight: .medium))
-                        Text(habit.habitType.displayName)
+                    Text(habit.habitType.displayName)
                             .font(.system(size: 14, weight: .semibold))
                     }
                     .padding(.horizontal, 12)
@@ -201,10 +201,10 @@ struct HabitDetailView: View {
                                 )
                         )
                         .foregroundColor(.orange)
-                    }
                 }
             }
         }
+    }
     }
     
     // MARK: - Stats Section
@@ -264,8 +264,8 @@ struct HabitDetailView: View {
                         Text(habit.isCompleted ? "Completed" : "Pending")
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(habit.isCompleted ? .green : .orange)
-                    }
-                    
+                }
+                
                     Text(habit.canCompleteToday ? "Ready to complete" : "Already completed")
                         .font(.system(size: 13, weight: .regular))
                         .foregroundColor(.white.opacity(0.6))
@@ -311,7 +311,7 @@ struct HabitDetailView: View {
                                 endPoint: .bottomTrailing
                             ),
                             style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                        )
+                    )
                         .frame(width: 120, height: 120)
                         .rotationEffect(.degrees(-90))
                     
@@ -353,9 +353,9 @@ struct HabitDetailView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(.white.opacity(0.1), lineWidth: 1)
                         )
-                )
-            }
+            )
         }
+    }
     }
     
     // MARK: - Actions Section
@@ -369,15 +369,15 @@ struct HabitDetailView: View {
                 Spacer()
             }
             
-            VStack(spacing: 12) {
-                if habit.habitType == .build {
-                    if habit.canComplete(on: dateManager.currentDate) {
-                        Button {
+        VStack(spacing: 12) {
+            if habit.habitType == .build {
+                if habit.canComplete(on: dateManager.currentDate) {
+                    Button {
                             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                                 habitService.completeHabit(habit)
-                                dismiss()
+                        dismiss()
                             }
-                        } label: {
+                    } label: {
                             PremiumActionButton(
                                 icon: "checkmark.circle.fill",
                                 text: "Mark Complete",
@@ -411,7 +411,7 @@ struct HabitDetailView: View {
                         }
                     } else {
                         PremiumActionButton(
-                            icon: "checkmark.circle.fill",
+                        icon: "checkmark.circle.fill",
                             text: "Succeeded Today",
                             color: .green,
                             isEnabled: false
@@ -554,7 +554,7 @@ struct DetailStatCard: View {
                     Spacer()
                 }
                 
-                HStack {
+        HStack {
                     Text(subtitle)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.white.opacity(0.5))

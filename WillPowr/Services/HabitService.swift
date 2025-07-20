@@ -62,11 +62,32 @@ final class HabitService: ObservableObject {
             let descriptor = FetchDescriptor<Habit>(
                 sortBy: [SortDescriptor(\Habit.createdDate, order: .reverse)]
             )
-            habits = try modelContext.fetch(descriptor)
-            print("✅ Loaded \(habits.count) habits")
-            for habit in habits {
-                print("📱 Habit: \(habit.name) - Created: \(habit.createdDate)")
+            let fetchedHabits = try modelContext.fetch(descriptor)
+            print("✅ Loaded \(fetchedHabits.count) habits")
+            
+            // Test accessing trackingMode to catch casting errors
+            var validHabits: [Habit] = []
+            for habit in fetchedHabits {
+                do {
+                    // Try to access trackingMode - this will trigger casting error if property doesn't exist
+                    let _ = habit.trackingMode
+                    validHabits.append(habit)
+                    print("📱 Valid habit: \(habit.name) - trackingMode: \(habit.trackingMode)")
+                } catch {
+                    print("⚠️ Casting error for habit \(habit.name): \(error.localizedDescription)")
+                    print("🔧 This habit has corrupted data - will be excluded")
+                }
             }
+            
+            // If we have casting errors, clear all data to start fresh
+            if validHabits.count != fetchedHabits.count {
+                print("🗑️ Detected \(fetchedHabits.count - validHabits.count) corrupted habits - clearing database for schema migration")
+                deleteAllHabits()
+                habits = []
+            } else {
+                habits = validHabits
+            }
+            
         } catch {
             print("❌ Error loading habits: \(error)")
             self.error = .loadingFailed(error.localizedDescription)
@@ -75,8 +96,8 @@ final class HabitService: ObservableObject {
         isLoading = false
     }
     
-    func addHabit(name: String, type: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil) {
-        print("🔧 HabitService.addHabit called with name: \(name), type: \(type), goal: \(goalTarget) \(goalUnit.displayName)")
+    func addHabit(name: String, type: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil, trackingMode: TrackingMode = .manual) {
+        print("🔧 HabitService.addHabit called with name: \(name), type: \(type), goal: \(goalTarget) \(goalUnit.displayName), trackingMode: \(trackingMode)")
         
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             print("❌ Invalid name: '\(name)'")
@@ -91,19 +112,33 @@ final class HabitService: ObservableObject {
             isCustom: isCustom,
             goalTarget: goalTarget,
             goalUnit: goalUnit,
-            goalDescription: goalDescription
+            goalDescription: goalDescription,
+            trackingMode: trackingMode
         )
         
         modelContext.insert(habit)
         
         do {
             try modelContext.save()
-            print("✅ Habit saved successfully: \(habit.name)")
+            print("✅ Habit saved successfully: \(habit.name) with tracking mode: \(habit.trackingMode)")
             loadHabits()
+            
+            // If this is an automatic tracking habit, trigger immediate sync
+            if trackingMode == .automatic {
+                print("🔄 New automatic habit added - triggering immediate sync")
+                triggerImmediateSync()
+            }
         } catch {
             print("❌ Error saving habit: \(error)")
             self.error = .savingFailed(error.localizedDescription)
         }
+    }
+    
+    // MARK: - Immediate Sync Trigger
+    
+    private func triggerImmediateSync() {
+        // Post notification to trigger sync
+        NotificationCenter.default.post(name: .immediateSync, object: nil)
     }
     
     func addPresetHabit(_ preset: PresetHabit) {
@@ -116,7 +151,8 @@ final class HabitService: ObservableObject {
             isCustom: false,
             goalTarget: preset.defaultGoalTarget,
             goalUnit: preset.defaultGoalUnit,
-            goalDescription: preset.goalDescription
+            goalDescription: preset.goalDescription,
+            trackingMode: preset.defaultTrackingMode
         )
     }
     
@@ -393,6 +429,13 @@ final class HabitService: ObservableObject {
         }
     }
     
+    // MARK: - Public Save Method
+    
+    func saveChanges() throws {
+        try modelContext.save()
+        print("💾 Public save completed")
+    }
+    
     func habitDescription(for habit: Habit) -> String {
         if let description = habit.goalDescription {
             return description
@@ -503,6 +546,12 @@ final class HabitService: ObservableObject {
     }
     
     // MARK: - Helper Methods
+}
+
+// MARK: - Notification Extensions
+
+extension Notification.Name {
+    static let immediateSync = Notification.Name("immediateSync")
 }
 
 // MARK: - Habit Error

@@ -38,6 +38,41 @@ enum GoalUnit: String, CaseIterable, Codable {
         case .none: return ""
         }
     }
+    
+    var supportsAutoTracking: Bool {
+        switch self {
+        case .steps, .minutes: return true // HealthKit can track steps and exercise minutes
+        case .hours, .liters, .glasses, .grams, .count, .none: return false
+        }
+    }
+}
+
+// MARK: - Tracking Mode
+
+enum TrackingMode: String, CaseIterable, Codable {
+    case automatic = "automatic"
+    case manual = "manual"
+    
+    var displayName: String {
+        switch self {
+        case .automatic: return "Automatic"
+        case .manual: return "Manual"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .automatic: return "Track progress automatically using HealthKit data"
+        case .manual: return "Manually log progress with buttons"
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .automatic: return "waveform.path.ecg"
+        case .manual: return "hand.tap.fill"
+        }
+    }
 }
 
 @Model
@@ -58,8 +93,9 @@ final class Habit {
     var goalUnit: GoalUnit = GoalUnit.none // Default value for migration
     var currentProgress: Double = 0.0 // Default value for migration
     var goalDescription: String? // Optional for migration
+    var trackingMode: TrackingMode = TrackingMode.manual // Default value for migration
     
-    init(name: String, habitType: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil) {
+    init(name: String, habitType: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil, trackingMode: TrackingMode = .manual) {
         self.id = UUID()
         self.name = name
         self.habitType = habitType
@@ -74,6 +110,7 @@ final class Habit {
         self.goalUnit = goalUnit
         self.currentProgress = 0
         self.goalDescription = goalDescription
+        self.trackingMode = trackingMode
     }
     
     // MARK: - Computed Properties
@@ -99,6 +136,14 @@ final class Habit {
         let target = formatValue(goalTarget)
         
         return "\(current) / \(target) \(goalUnit.displayName)"
+    }
+    
+    var canUseAutoTracking: Bool {
+        return goalUnit.supportsAutoTracking && trackingMode == .automatic
+    }
+    
+    var shouldShowTrackingModeOption: Bool {
+        return goalUnit.supportsAutoTracking
     }
     
     func canComplete(on date: Date) -> Bool {
@@ -149,26 +194,28 @@ struct PresetHabit {
     let defaultGoalTarget: Double
     let defaultGoalUnit: GoalUnit
     let goalDescription: String?
+    let defaultTrackingMode: TrackingMode
     
-    init(name: String, iconName: String, habitType: HabitType, defaultGoalTarget: Double = 1, defaultGoalUnit: GoalUnit = .none, goalDescription: String? = nil) {
+    init(name: String, iconName: String, habitType: HabitType, defaultGoalTarget: Double = 1, defaultGoalUnit: GoalUnit = .none, goalDescription: String? = nil, defaultTrackingMode: TrackingMode = .manual) {
         self.name = name
         self.iconName = iconName
         self.habitType = habitType
         self.defaultGoalTarget = defaultGoalTarget
         self.defaultGoalUnit = defaultGoalUnit
         self.goalDescription = goalDescription
+        self.defaultTrackingMode = defaultTrackingMode
     }
 }
 
 extension PresetHabit {
     static let buildHabits: [PresetHabit] = [
-        PresetHabit(name: "Walk Daily", iconName: "figure.walk", habitType: .build, defaultGoalTarget: 8000, defaultGoalUnit: .steps, goalDescription: "Walk 8,000 steps daily"),
-        PresetHabit(name: "Meditate", iconName: "brain.head.profile", habitType: .build, defaultGoalTarget: 10, defaultGoalUnit: .minutes, goalDescription: "Meditate for 10 minutes daily"),
-        PresetHabit(name: "Drink Water", iconName: "drop.fill", habitType: .build, defaultGoalTarget: 2, defaultGoalUnit: .liters, goalDescription: "Drink 2 liters of water daily"),
-        PresetHabit(name: "Read", iconName: "book.fill", habitType: .build, defaultGoalTarget: 20, defaultGoalUnit: .minutes, goalDescription: "Read for 20 minutes daily"),
-        PresetHabit(name: "Exercise", iconName: "dumbbell.fill", habitType: .build, defaultGoalTarget: 30, defaultGoalUnit: .minutes, goalDescription: "Exercise for 30 minutes daily"),
-        PresetHabit(name: "Journal", iconName: "pencil.and.outline", habitType: .build, defaultGoalTarget: 1, defaultGoalUnit: .none, goalDescription: "Write in journal daily"),
-        PresetHabit(name: "Sleep Early", iconName: "bed.double.fill", habitType: .build, defaultGoalTarget: 1, defaultGoalUnit: .none, goalDescription: "Sleep before 11 PM daily")
+        PresetHabit(name: "Walk Daily", iconName: "figure.walk", habitType: .build, defaultGoalTarget: 8000, defaultGoalUnit: .steps, goalDescription: "Walk 8,000 steps daily", defaultTrackingMode: .automatic),
+        PresetHabit(name: "Meditate", iconName: "brain.head.profile", habitType: .build, defaultGoalTarget: 10, defaultGoalUnit: .minutes, goalDescription: "Meditate for 10 minutes daily", defaultTrackingMode: .automatic),
+        PresetHabit(name: "Drink Water", iconName: "drop.fill", habitType: .build, defaultGoalTarget: 2, defaultGoalUnit: .liters, goalDescription: "Drink 2 liters of water daily", defaultTrackingMode: .manual),
+        PresetHabit(name: "Read", iconName: "book.fill", habitType: .build, defaultGoalTarget: 20, defaultGoalUnit: .minutes, goalDescription: "Read for 20 minutes daily", defaultTrackingMode: .manual),
+        PresetHabit(name: "Exercise", iconName: "dumbbell.fill", habitType: .build, defaultGoalTarget: 30, defaultGoalUnit: .minutes, goalDescription: "Exercise for 30 minutes daily", defaultTrackingMode: .automatic),
+        PresetHabit(name: "Journal", iconName: "pencil.and.outline", habitType: .build, defaultGoalTarget: 1, defaultGoalUnit: .none, goalDescription: "Write in journal daily", defaultTrackingMode: .manual),
+        PresetHabit(name: "Sleep Early", iconName: "bed.double.fill", habitType: .build, defaultGoalTarget: 1, defaultGoalUnit: .none, goalDescription: "Sleep before 11 PM daily", defaultTrackingMode: .manual)
     ]
     
     static let quitHabits: [PresetHabit] = [

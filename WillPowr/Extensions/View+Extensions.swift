@@ -236,7 +236,7 @@ struct PremiumCardStyle: ViewModifier {
                     }
             )
     }
-}
+} 
 
 // MARK: - Keyboard Dismiss
 

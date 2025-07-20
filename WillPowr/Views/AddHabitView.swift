@@ -14,6 +14,7 @@ struct AddHabitView: View {
     @State private var goalTarget: Double = 1
     @State private var goalUnit: GoalUnit = .none
     @State private var goalDescription: String = ""
+    @State private var trackingMode: TrackingMode = .manual
     @State private var showingGoalSettings = false
     @State private var selectedPreset: PresetHabit? = nil
     
@@ -36,7 +37,7 @@ struct AddHabitView: View {
                 // Floating orbs for depth
                 FloatingOrbs()
                 
-                mainContent(habitService: habitService)
+                    mainContent(habitService: habitService)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -60,11 +61,12 @@ struct AddHabitView: View {
                 goalTarget: $goalTarget,
                 goalUnit: $goalUnit,
                 goalDescription: $goalDescription,
+                trackingMode: $trackingMode,
                 onSave: {
-                    if selectedPreset != nil {
-                        finalizeHabit(habitService: habitService)
-                    } else {
-                        createCustomHabit(habitService: habitService)
+                        if selectedPreset != nil {
+                            finalizeHabit(habitService: habitService)
+                        } else {
+                            createCustomHabit(habitService: habitService)
                     }
                 },
                 onCancel: {
@@ -457,6 +459,7 @@ struct AddHabitView: View {
                     goalTarget = 1
                     goalUnit = .none
                     goalDescription = ""
+                    trackingMode = .manual
                     showingGoalSettings = true
                 } label: {
                     HStack(spacing: 8) {
@@ -629,6 +632,7 @@ struct AddHabitView: View {
         goalTarget = preset.defaultGoalTarget
         goalUnit = preset.defaultGoalUnit
         goalDescription = preset.goalDescription ?? ""
+        trackingMode = preset.defaultTrackingMode
         
         // Show goal settings screen
         showingGoalSettings = true
@@ -646,7 +650,8 @@ struct AddHabitView: View {
             isCustom: true,
             goalTarget: goalTarget,
             goalUnit: goalUnit,
-            goalDescription: goalDescription.isEmpty ? nil : goalDescription
+            goalDescription: goalDescription.isEmpty ? nil : goalDescription,
+            trackingMode: trackingMode
         )
         
         dismiss()
@@ -661,7 +666,8 @@ struct AddHabitView: View {
                 isCustom: false,
                 goalTarget: goalTarget,
                 goalUnit: goalUnit,
-                goalDescription: goalDescription.isEmpty ? nil : goalDescription
+                goalDescription: goalDescription.isEmpty ? nil : goalDescription,
+                trackingMode: trackingMode
             )
         }
         
@@ -678,6 +684,7 @@ struct GoalSettingsView: View {
     @Binding var goalTarget: Double
     @Binding var goalUnit: GoalUnit
     @Binding var goalDescription: String
+    @Binding var trackingMode: TrackingMode
     let onSave: () -> Void
     let onCancel: () -> Void
     
@@ -723,6 +730,15 @@ struct GoalSettingsView: View {
                     VStack(spacing: 28) {
                         // Unit Selector
                         unitSelector
+                        
+                        // Tracking Mode Selector - show when unit supports auto tracking
+                        if goalUnit.supportsAutoTracking {
+                            trackingModeSelector
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .move(edge: .top).combined(with: .opacity)
+                                ))
+                        }
                         
                         // Target Input - show when unit is selected and not .none
                         if goalUnit != .none {
@@ -1070,6 +1086,115 @@ struct GoalSettingsView: View {
                         )
                 )
                 .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.2), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+    }
+    
+    private var trackingModeSelector: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Tracking Method")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            VStack(spacing: 16) {
+                ForEach(TrackingMode.allCases, id: \.self) { mode in
+                    Button {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                            trackingMode = mode
+                        }
+                    } label: {
+                        HStack(spacing: 16) {
+                            // Icon
+                            Image(systemName: mode.iconName)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(width: 24, height: 24)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(mode.displayName)
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                
+                                Text(mode.description)
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .multilineTextAlignment(.leading)
+                            }
+                            
+                            Spacer()
+                            
+                            // Selection indicator
+                            ZStack {
+                                Circle()
+                                    .stroke(.white.opacity(0.3), lineWidth: 2)
+                                    .frame(width: 20, height: 20)
+                                
+                                if trackingMode == mode {
+                                    Circle()
+                                        .fill(.blue)
+                                        .frame(width: 12, height: 12)
+                                        .scaleEffect(trackingMode == mode ? 1.0 : 0.0)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(
+                                    trackingMode == mode ? 
+                                    LinearGradient(
+                                        colors: [.blue.opacity(0.2), .blue.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ) :
+                                    LinearGradient(
+                                        colors: [.white.opacity(0.08), .white.opacity(0.04)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [
+                                                    trackingMode == mode ? .blue.opacity(0.4) : .white.opacity(0.2),
+                                                    .clear
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: trackingMode == mode ? 2 : 1
+                                        )
+                                )
+                        )
+                        .shadow(color: trackingMode == mode ? .blue.opacity(0.2) : .clear, radius: 8, x: 0, y: 4)
+                        .scaleEffect(trackingMode == mode ? 1.02 : 1.0)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: trackingMode)
+                }
+            }
         }
         .padding(20)
         .background(

@@ -71,8 +71,8 @@ class DateManager: ObservableObject {
     
     /// Format date for debugging display
     func formatDebugDate() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d, yyyy"
         return formatter.string(from: currentDate)
     }
 } 

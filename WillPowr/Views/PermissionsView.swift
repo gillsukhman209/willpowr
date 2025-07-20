@@ -90,6 +90,9 @@ struct PermissionsView: View {
                     }
                     .padding(.top, 40)
                     
+                    // Tracking Mode Explanation
+                    trackingModeExplanation
+                    
                     // Permissions Cards
                     VStack(spacing: 16) {
                         ForEach(permissions, id: \.title) { permission in
@@ -210,6 +213,92 @@ struct PermissionsView: View {
     private func skipPermissions() {
         hasShownPermissions = true
         dismiss()
+    }
+    
+    // MARK: - Tracking Mode Explanation
+    
+    private var trackingModeExplanation: some View {
+        VStack(spacing: 20) {
+            Text("Choose Your Tracking Style")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            HStack(spacing: 16) {
+                // Automatic Tracking Card
+                VStack(spacing: 12) {
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.title)
+                        .foregroundColor(.blue)
+                        .frame(height: 30)
+                    
+                    Text("Automatic")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    
+                    VStack(spacing: 6) {
+                        Text("• HealthKit integration")
+                        Text("• Real-time updates")
+                        Text("• Steps & exercise tracking")
+                        Text("• Requires permissions")
+                    }
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.blue.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(.blue.opacity(0.3), lineWidth: 1)
+                        )
+                )
+                
+                // Manual Tracking Card
+                VStack(spacing: 12) {
+                    Image(systemName: "hand.tap.fill")
+                        .font(.title)
+                        .foregroundColor(.orange)
+                        .frame(height: 30)
+                    
+                    Text("Manual")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    
+                    VStack(spacing: 6) {
+                        Text("• Simple tap to complete")
+                        Text("• No permissions needed")
+                        Text("• Works for any habit")
+                        Text("• Full privacy control")
+                    }
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.orange.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(.orange.opacity(0.3), lineWidth: 1)
+                        )
+                )
+            }
+            
+            Text("💡 You can mix automatic and manual habits, and change modes anytime in settings")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+        }
+        .padding(.horizontal, 20)
     }
 }
 
