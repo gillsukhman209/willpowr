@@ -61,11 +61,6 @@ struct HabitCard: View {
                 // Bottom stats
                 bottomStats
                 
-                // Tracking mode indicator
-                if habit.trackingMode == .automatic {
-                    autoTrackingIndicator
-                }
-                
                 // Action buttons (only if needed)
                 if shouldShowActionButtons {
                     actionButtons
@@ -152,18 +147,7 @@ struct HabitCard: View {
                 }
             }
             
-            // Progress source indicator
-            if habit.goalUnit != .none {
-                HStack(spacing: 4) {
-                    Image(systemName: habit.trackingMode == .automatic ? "sensor.tag.radiowaves.forward.fill" : "hand.point.up.braille.fill")
-                        .font(.caption2)
-                        .foregroundColor(habit.trackingMode == .automatic ? Color.blue.opacity(0.7) : Color.orange.opacity(0.7))
-                    
-                    Text(habit.trackingMode == .automatic ? "Auto-tracked via HealthKit" : "Manual tracking")
-                        .font(.caption2)
-                        .foregroundColor(habit.trackingMode == .automatic ? Color.blue.opacity(0.7) : Color.orange.opacity(0.7))
-                }
-            }
+
         }
     }
     
@@ -256,81 +240,12 @@ struct HabitCard: View {
         .padding(.top, 8)
     }
     
-    // MARK: - Auto Tracking Indicator
-    
-    private var autoTrackingIndicator: some View {
-        HStack(spacing: 8) {
-            if healthKitService.isAuthorized {
-                Image(systemName: "waveform.path.ecg")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.blue)
-                
-                Text("Auto-tracking enabled")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.blue)
-            } else {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.orange)
-                
-                Text("HealthKit access needed")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.orange)
-            }
-            
-            Spacer()
-            
-            if habit.isGoalMet {
-                HStack(spacing: 4) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                    
-                    Text("Goal reached!")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.green)
-                }
-            } else if !healthKitService.isAuthorized {
-                Button(action: {
-                    Task {
-                        try? await healthKitService.requestPermissions()
-                    }
-                }) {
-                    Text("Grant Access")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(.orange)
-                        )
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(healthKitService.isAuthorized ? .blue.opacity(0.1) : .orange.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(healthKitService.isAuthorized ? .blue.opacity(0.2) : .orange.opacity(0.2), lineWidth: 1)
-                )
-        )
-    }
+
     
     // MARK: - Action Buttons
     
     private var actionButtons: some View {
-        HStack(spacing: 12) {
+        VStack(spacing: 12) {
             if habit.habitType == .build {
                 if habit.trackingMode == .automatic {
                     if !healthKitService.isAuthorized {
@@ -341,15 +256,8 @@ struct HabitCard: View {
                             color: .orange,
                             action: completeHabit
                         )
-                    } else if !habit.isGoalMet {
-                        // HealthKit authorized but goal not met - show manual override
-                        modernActionButton(
-                            title: "Manual Complete",
-                            icon: "hand.tap.fill",
-                            color: .orange,
-                            action: completeHabit
-                        )
                     }
+                    // If HealthKit is authorized, no button needed - auto-tracking handles it
                 } else if !habit.isGoalMet {
                     // For manual habits, show regular complete button
                     modernActionButton(
@@ -382,24 +290,39 @@ struct HabitCard: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
                 
                 Text(title)
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
             }
-            .foregroundColor(color)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .foregroundColor(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(color.opacity(0.15))
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            colors: [color.opacity(0.9), color.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(color.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.2), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
                     )
             )
+            .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -443,11 +366,10 @@ struct HabitCard: View {
             return true
         }
         
-        // For build habits with automatic tracking, show manual override buttons if:
-        // 1. Goal not met, OR 
-        // 2. HealthKit not authorized (fallback to manual)
+        // For build habits with automatic tracking:
+        // Only show fallback button if HealthKit not authorized
         if habit.trackingMode == .automatic {
-            return !habit.isGoalMet || !healthKitService.isAuthorized
+            return !healthKitService.isAuthorized
         }
         
         // For manual tracking, show if not completed

@@ -317,109 +317,11 @@ struct DashboardView: View {
                         .foregroundColor(.orange)
                 }
             }
-            
-            // Auto Sync Status
-            syncStatusIndicator
         }
         .padding(.horizontal, 20)
     }
     
-    // MARK: - Sync Status Indicator
-    
-    private var syncStatusIndicator: some View {
-        HStack(spacing: 12) {
-            // Sync status icon
-            Image(systemName: autoSyncService.isAutoSyncEnabled ? "waveform.path.ecg" : "pause.circle")
-                .font(.caption)
-                .foregroundColor(autoSyncService.isAutoSyncEnabled ? Color.blue : Color.gray)
-            
-            // Sync status text
-            VStack(alignment: .leading, spacing: 2) {
-                Text(autoSyncService.isAutoSyncEnabled ? "Auto-sync enabled" : "Auto-sync paused")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white.opacity(0.8))
-                
-                if let lastSync = autoSyncService.lastSyncTime {
-                    Text("Last sync: \(lastSync, formatter: DateFormatter.timeOnly)")
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.5))
-                } else {
-                    Text("No sync yet")
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.5))
-                }
-            }
-            
-            Spacer()
-            
-            // Manual sync button
-            Button(action: {
-                Task {
-                    print("🔄 Manual sync button tapped")
-                    await autoSyncService.manualSync()
-                }
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.caption2)
-                    Text("Sync Now")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                }
-                .foregroundColor(.blue)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(.blue.opacity(0.15))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.blue.opacity(0.3), lineWidth: 1)
-                        )
-                )
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            // Toggle auto sync
-            Button(action: {
-                autoSyncService.toggleAutoSync()
-            }) {
-                Image(systemName: autoSyncService.isAutoSyncEnabled ? "pause.fill" : "play.fill")
-                    .font(.caption2)
-                    .foregroundColor(autoSyncService.isAutoSyncEnabled ? Color.orange : Color.green)
-                    .frame(width: 20, height: 20)
-                    .background(
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                Circle()
-                                    .stroke(
-                                        (autoSyncService.isAutoSyncEnabled ? Color.orange : Color.green).opacity(0.3), 
-                                        lineWidth: 1
-                                    )
-                            )
-                    )
-            }
-            .buttonStyle(PlainButtonStyle())
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(.white.opacity(0.1), lineWidth: 1)
-                )
-        )
-        .opacity(hasAutoTrackingHabits ? 1.0 : 0.0)
-        .animation(.easeInOut, value: hasAutoTrackingHabits)
-    }
-    
-    private var hasAutoTrackingHabits: Bool {
-        habitService.habits.contains { $0.trackingMode == .automatic }
-    }
+
     
     // MARK: - Schema Reset Helper
     
