@@ -152,46 +152,175 @@ struct MinimalistHabitDetailView: View {
     }
     
     private var actionsSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 15) {
             if habit.goalUnit == .none {
-                Button {
-                    habitService.completeHabit(habit)
-                } label: {
-                    HStack {
-                        Image(systemName: habit.isCompleted ? "checkmark.circle.fill" : "circle")
-                            .font(.title3)
-                        
-                        Text(habit.isCompleted ? "Completed Today" : "Mark as Complete")
-                            .fontWeight(.semibold)
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        habit.isCompleted ?
-                        DesignTokens.Colors.neonGreen :
-                        DesignTokens.Colors.electricBlue
-                    )
-                    .cornerRadius(12)
-                }
+                // Binary habits - simple toggle
+                binaryHabitToggle
+            } else if habit.canUseAutoTracking {
+                // Automatic habits - read-only display
+                automaticTrackingDisplay
             } else {
-                Button {
-                    // TODO: Show progress input sheet
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
-                        
-                        Text("Log Progress")
-                            .fontWeight(.semibold)
-                    }
+                // Manual habits - interactive progress controls
+                manualProgressControls
+            }
+        }
+    }
+    
+    private var binaryHabitToggle: some View {
+        Button {
+            habitService.completeHabit(habit)
+        } label: {
+            HStack {
+                Image(systemName: habit.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                
+                Text(habit.isCompleted ? "Completed Today" : "Mark as Complete")
+                    .fontWeight(.semibold)
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(
+                habit.isCompleted ?
+                DesignTokens.Colors.neonGreen :
+                DesignTokens.Colors.electricBlue
+            )
+            .cornerRadius(12)
+        }
+    }
+    
+    private var automaticTrackingDisplay: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Image(systemName: "waveform.path.ecg")
+                    .foregroundColor(DesignTokens.Colors.electricBlue)
+                Text("Automatically tracked")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+                Spacer()
+            }
+            .padding()
+            .background(Color.white.opacity(0.05))
+            .cornerRadius(12)
+            
+            if habit.isGoalMet {
+                goalCompletedIndicator
+            }
+        }
+    }
+    
+    private var manualProgressControls: some View {
+        VStack(spacing: 12) {
+            // Current progress display
+            currentProgressDisplay
+            
+            // Quick action buttons based on goal unit
+            quickActionButtons
+            
+            // Goal completion indicator
+            if habit.isGoalMet {
+                goalCompletedIndicator
+            }
+        }
+    }
+    
+    private var currentProgressDisplay: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Progress Today")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
+                
+                Text("\(formatValue(habit.currentProgress)) / \(formatValue(habit.goalTarget)) \(habit.goalUnit.displayName)")
+                    .font(.headline)
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(DesignTokens.Colors.electricBlue)
-                    .cornerRadius(12)
+            }
+            
+            Spacer()
+            
+            CircularProgressView(
+                progress: habit.progressPercentage,
+                color: DesignTokens.Colors.electricBlue
+            )
+            .frame(width: 40, height: 40)
+        }
+        .padding()
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(12)
+    }
+    
+    private var quickActionButtons: some View {
+        VStack(spacing: 8) {
+            Text("Quick Add")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
+                ForEach(getQuickAddValues(), id: \.self) { value in
+                    quickActionButton(value: value)
                 }
             }
+        }
+    }
+    
+    private func quickActionButton(value: Double) -> some View {
+        Button {
+            habitService.addProgressToHabit(habit, progress: value)
+        } label: {
+            Text("+\(formatValue(value))")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(DesignTokens.Colors.electricBlue.opacity(0.3))
+                .cornerRadius(8)
+        }
+    }
+    
+    private var goalCompletedIndicator: some View {
+        HStack {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(DesignTokens.Colors.neonGreen)
+            Text("Goal completed!")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(DesignTokens.Colors.neonGreen)
+            Spacer()
+        }
+        .padding()
+        .background(DesignTokens.Colors.neonGreen.opacity(0.1))
+        .cornerRadius(12)
+    }
+    
+    private func getQuickAddValues() -> [Double] {
+        switch habit.goalUnit {
+        case .steps:
+            return [1000, 2000, 5000, 10000]
+        case .minutes:
+            return [5, 10, 15, 30]
+        case .hours:
+            return [0.5, 1, 2, 3]
+        case .liters:
+            return [0.25, 0.5, 1, 1.5]
+        case .glasses:
+            return [1, 2, 3, 4]
+        case .grams:
+            return [10, 25, 50, 100]
+        case .count:
+            return [1, 5, 10, 25]
+        case .none:
+            return []
+        }
+    }
+    
+    private func formatValue(_ value: Double) -> String {
+        if value == floor(value) {
+            return String(Int(value))
+        } else {
+            return String(format: "%.1f", value)
         }
     }
     
@@ -257,5 +386,23 @@ struct MinimalistHabitDetailView: View {
         // Calculate based on habit streak and longestStreak
         // This is a simplified calculation - could be improved with a proper completion dates array
         return max(habit.streak, habit.longestStreak)
+    }
+}
+
+struct CircularProgressView: View {
+    let progress: Double
+    let color: Color
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(color.opacity(0.2), lineWidth: 3)
+            
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 0.5), value: progress)
+        }
     }
 }

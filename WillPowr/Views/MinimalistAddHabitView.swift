@@ -31,6 +31,8 @@ struct MinimalistAddHabitView: View {
                     VStack(spacing: 30) {
                         if showingPresets {
                             presetSection
+                        } else if selectedPreset != nil {
+                            presetConfigurationForm
                         } else {
                             customHabitForm
                         }
@@ -48,7 +50,7 @@ struct MinimalistAddHabitView: View {
                 }
                 
                 ToolbarItem(placement: .principal) {
-                    Text(showingPresets ? "Choose Habit" : "Custom Habit")
+                    Text(getNavigationTitle())
                         .font(.headline)
                         .foregroundColor(.white)
                 }
@@ -60,6 +62,7 @@ struct MinimalistAddHabitView: View {
                         }
                         .foregroundColor(DesignTokens.Colors.electricBlue)
                         .fontWeight(.semibold)
+                        .disabled(!canSaveHabit())
                     }
                 }
             }
@@ -68,9 +71,43 @@ struct MinimalistAddHabitView: View {
     
     private var presetSection: some View {
         VStack(spacing: 20) {
+            // Habit Type Selector
+            VStack(spacing: 12) {
+                Text("What type of habit do you want to build?")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                
+                HStack(spacing: 12) {
+                    ForEach(HabitType.allCases, id: \.self) { type in
+                        Button {
+                            selectedHabitType = type
+                        } label: {
+                            Text(type.displayName)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(selectedHabitType == type ? .black : .white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(
+                                    selectedHabitType == type ?
+                                    DesignTokens.Colors.electricBlue :
+                                    Color.white.opacity(0.1)
+                                )
+                                .cornerRadius(20)
+                        }
+                    }
+                }
+            }
+            .padding(.bottom, 10)
+            
             ForEach(presetHabits[selectedHabitType] ?? [], id: \.name) { preset in
                 Button {
                     selectedPreset = preset
+                    goalTarget = preset.defaultGoalTarget
+                    goalUnit = preset.defaultGoalUnit
+                    goalDescription = preset.goalDescription ?? ""
+                    trackingMode = preset.defaultTrackingMode
                     showingPresets = false
                 } label: {
                     HStack {
@@ -101,6 +138,7 @@ struct MinimalistAddHabitView: View {
             }
             
             Button {
+                selectedPreset = nil
                 showingPresets = false
             } label: {
                 HStack {
@@ -118,6 +156,134 @@ struct MinimalistAddHabitView: View {
                 .background(Color.white.opacity(0.08))
                 .cornerRadius(12)
             }
+        }
+    }
+    
+    private var presetConfigurationForm: some View {
+        VStack(spacing: 25) {
+            if let preset = selectedPreset {
+                presetHeader(preset)
+                presetGoalConfiguration
+                presetBackButton
+            }
+        }
+    }
+    
+    private func presetHeader(_ preset: PresetHabit) -> some View {
+        VStack(spacing: 15) {
+            Image(systemName: preset.iconName)
+                .font(.system(size: 60))
+                .foregroundColor(DesignTokens.Colors.electricBlue)
+                .padding()
+                .background(
+                    Circle()
+                        .fill(DesignTokens.Colors.electricBlue.opacity(0.1))
+                        .overlay(
+                            Circle()
+                                .stroke(DesignTokens.Colors.electricBlue.opacity(0.3), lineWidth: 1)
+                        )
+                )
+            
+            Text(preset.name)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            if let description = preset.goalDescription {
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(.bottom, 10)
+    }
+    
+    private var presetGoalConfiguration: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("Goal Configuration")
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Target")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
+                
+                HStack(spacing: 15) {
+                    TextField("Target", value: $goalTarget, format: .number)
+                        .textFieldStyle(MinimalistTextFieldStyle())
+                        .frame(width: 100)
+                    
+                    Text(goalUnit.longDisplayName)
+                        .foregroundColor(.white.opacity(0.8))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            
+            if goalUnit.supportsAutoTracking {
+                presetTrackingModeSelection
+            }
+        }
+    }
+    
+    private var presetTrackingModeSelection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Tracking Mode")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+            
+            VStack(spacing: 8) {
+                ForEach(TrackingMode.allCases, id: \.self) { mode in
+                    presetTrackingModeButton(mode)
+                }
+            }
+        }
+    }
+    
+    private func presetTrackingModeButton(_ mode: TrackingMode) -> some View {
+        Button {
+            trackingMode = mode
+        } label: {
+            HStack {
+                Image(systemName: mode.iconName)
+                    .foregroundColor(trackingMode == mode ? .white : .white.opacity(0.6))
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(mode.displayName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(trackingMode == mode ? .white : .white.opacity(0.6))
+                    
+                    Text(mode.description)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                
+                Spacer()
+                
+                if trackingMode == mode {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(DesignTokens.Colors.electricBlue)
+                }
+            }
+            .padding()
+            .background(
+                Color.white.opacity(trackingMode == mode ? 0.1 : 0.05)
+            )
+            .cornerRadius(12)
+        }
+    }
+    
+    private var presetBackButton: some View {
+        Button {
+            showingPresets = true
+            selectedPreset = nil
+        } label: {
+            Text("← Choose Different Habit")
+                .font(.subheadline)
+                .foregroundColor(DesignTokens.Colors.electricBlue)
+                .padding()
         }
     }
     
@@ -164,38 +330,103 @@ struct MinimalistAddHabitView: View {
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.6))
                 
-                HStack {
-                    TextField("Target", value: $goalTarget, format: .number)
-                        .textFieldStyle(MinimalistTextFieldStyle())
-                        .frame(width: 100)
-                    
-                    Picker("Unit", selection: $goalUnit) {
-                        ForEach(GoalUnit.allCases, id: \.self) { unit in
-                            Text(unit.rawValue).tag(unit)
-                        }
+                VStack(spacing: 10) {
+                    HStack(spacing: 15) {
+                        TextField("Target", value: $goalTarget, format: .number)
+                            .textFieldStyle(MinimalistTextFieldStyle())
+                            .frame(width: 100)
+                        
+                        Text(goalUnit.longDisplayName)
+                            .foregroundColor(.white.opacity(0.8))
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .pickerStyle(.segmented)
+                    
+                    // Goal Unit Selection
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(GoalUnit.allCases, id: \.self) { unit in
+                                Button {
+                                    goalUnit = unit
+                                } label: {
+                                    Text(unit == .none ? "Complete/Incomplete" : unit.longDisplayName)
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(goalUnit == unit ? .black : .white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            goalUnit == unit ?
+                                            DesignTokens.Colors.electricBlue :
+                                            Color.white.opacity(0.1)
+                                        )
+                                        .cornerRadius(8)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 1)
+                    }
                 }
             }
             
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Tracking Mode")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.6))
-                
-                Picker("Tracking Mode", selection: $trackingMode) {
-                    ForEach(TrackingMode.allCases, id: \.self) { mode in
-                        Text(mode.rawValue).tag(mode)
+            if goalUnit.supportsAutoTracking {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Tracking Mode")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    VStack(spacing: 8) {
+                        ForEach(TrackingMode.allCases, id: \.self) { mode in
+                            Button {
+                                trackingMode = mode
+                            } label: {
+                                HStack {
+                                    Image(systemName: mode.iconName)
+                                        .foregroundColor(trackingMode == mode ? .white : .white.opacity(0.6))
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(mode.displayName)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(trackingMode == mode ? .white : .white.opacity(0.6))
+                                        
+                                        Text(mode.description)
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.5))
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if trackingMode == mode {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(DesignTokens.Colors.electricBlue)
+                                    }
+                                }
+                                .padding()
+                                .background(
+                                    Color.white.opacity(trackingMode == mode ? 0.1 : 0.05)
+                                )
+                                .cornerRadius(12)
+                            }
+                        }
                     }
                 }
-                .pickerStyle(.segmented)
             }
         }
     }
     
     private func saveHabit() {
         if let preset = selectedPreset {
-            habitService.addPresetHabit(preset)
+            // Create habit with configured values, not preset defaults
+            habitService.addHabit(
+                name: preset.name,
+                type: preset.habitType,
+                iconName: preset.iconName,
+                isCustom: false,
+                goalTarget: goalTarget,
+                goalUnit: goalUnit,
+                goalDescription: goalDescription.isEmpty ? preset.goalDescription : goalDescription,
+                trackingMode: trackingMode
+            )
         } else {
             habitService.addHabit(
                 name: customHabitName,
@@ -209,6 +440,24 @@ struct MinimalistAddHabitView: View {
             )
         }
         dismiss()
+    }
+    
+    private func getNavigationTitle() -> String {
+        if showingPresets {
+            return "Choose Habit"
+        } else if selectedPreset != nil {
+            return "Configure Habit"
+        } else {
+            return "Custom Habit"
+        }
+    }
+    
+    private func canSaveHabit() -> Bool {
+        if selectedPreset != nil {
+            return goalTarget > 0
+        } else {
+            return !customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && goalTarget > 0
+        }
     }
 }
 
