@@ -13,6 +13,7 @@ struct WillPowrApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Habit.self,
+            HabitEntry.self,
         ])
         
         do {
@@ -85,6 +86,7 @@ struct WillPowrApp: App {
         let modelContainer: ModelContainer
         @State private var habitService: HabitService?
         @State private var autoSyncService: AutoSyncService?
+        @State private var backgroundSyncService: BackgroundSyncService?
         @StateObject private var dateManager = DateManager()
         @StateObject private var healthKitService = HealthKitService()
         @AppStorage("hasShownPermissions") private var hasShownPermissions = false
@@ -92,12 +94,15 @@ struct WillPowrApp: App {
         
         var body: some View {
             Group {
-                if let habitService = habitService, let autoSyncService = autoSyncService {
+                if let habitService = habitService, 
+                   let autoSyncService = autoSyncService,
+                   let backgroundSyncService = backgroundSyncService {
                     ContentView()
                         .environmentObject(habitService)
                         .environmentObject(dateManager)
                         .environmentObject(healthKitService)
                         .environmentObject(autoSyncService)
+                        .environmentObject(backgroundSyncService)
                         .sheet(isPresented: $showPermissions) {
                             PermissionsView()
                                 .environmentObject(healthKitService)
@@ -124,16 +129,27 @@ struct WillPowrApp: App {
                 )
                 autoSyncService = syncService
                 
-                            // Check HealthKit authorization status with read access test
-            healthKitService.checkAuthorizationStatus()
-            
-            // Trigger initial sync after services are set up
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                Task {
-                    print("🚀 App launched - triggering initial health data sync")
-                    await syncService.syncAllHabits()
+                // Create BackgroundSyncService
+                let backgroundService = BackgroundSyncService(
+                    habitService: service,
+                    healthKitService: healthKitService,
+                    dateManager: dateManager
+                )
+                backgroundSyncService = backgroundService
+                
+                // Initialize background service
+                await backgroundService.initialize()
+                
+                // Check HealthKit authorization status with read access test
+                healthKitService.checkAuthorizationStatus()
+                
+                // Trigger initial sync after services are set up
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    Task {
+                        print("🚀 App launched - triggering initial health data sync")
+                        await syncService.syncAllHabits()
+                    }
                 }
-            }
                 
                 // Show permissions popup on first launch
                 if !hasShownPermissions {

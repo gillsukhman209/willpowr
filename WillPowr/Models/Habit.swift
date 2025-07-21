@@ -124,6 +124,10 @@ final class Habit {
     var trackingMode: TrackingMode = TrackingMode.manual // Default value for migration
     var quitHabitType: QuitHabitType = QuitHabitType.abstinence // Default for migration
     
+    // MARK: - History Relationship
+    @Relationship(deleteRule: .cascade, inverse: \HabitEntry.habit)
+    var entries: [HabitEntry] = []
+    
     init(name: String, habitType: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil, trackingMode: TrackingMode = .manual, quitHabitType: QuitHabitType = .abstinence) {
         self.id = UUID()
         self.name = name
@@ -260,6 +264,52 @@ final class Habit {
         } else {
             return String(format: "%.1f", value)
         }
+    }
+    
+    // MARK: - History Methods
+    
+    var sortedEntries: [HabitEntry] {
+        return entries.sorted { $0.date > $1.date }
+    }
+    
+    var recentEntries: [HabitEntry] {
+        return Array(sortedEntries.prefix(30)) // Last 30 days
+    }
+    
+    func entryFor(date: Date) -> HabitEntry? {
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        return entries.first { Calendar.current.isDate($0.date, inSameDayAs: startOfDay) }
+    }
+    
+    func entriesInRange(from startDate: Date, to endDate: Date) -> [HabitEntry] {
+        return entries.filter { entry in
+            entry.date >= Calendar.current.startOfDay(for: startDate) &&
+            entry.date <= Calendar.current.startOfDay(for: endDate)
+        }.sorted { $0.date < $1.date }
+    }
+    
+    var weeklyAverage: Double {
+        let lastWeekEntries = entriesInRange(
+            from: Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date(),
+            to: Date()
+        )
+        
+        guard !lastWeekEntries.isEmpty else { return 0 }
+        
+        let totalProgress = lastWeekEntries.reduce(0) { $0 + $1.progress }
+        return totalProgress / Double(lastWeekEntries.count)
+    }
+    
+    var monthlyAverage: Double {
+        let lastMonthEntries = entriesInRange(
+            from: Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date(),
+            to: Date()
+        )
+        
+        guard !lastMonthEntries.isEmpty else { return 0 }
+        
+        let totalProgress = lastMonthEntries.reduce(0) { $0 + $1.progress }
+        return totalProgress / Double(lastMonthEntries.count)
     }
 }
 

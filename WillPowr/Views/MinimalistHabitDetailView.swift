@@ -25,6 +25,8 @@ struct MinimalistHabitDetailView: View {
                         
                         actionsSection
                         
+                        historySection
+                        
                         dangerZone
                     }
                     .padding()
@@ -472,6 +474,16 @@ struct MinimalistHabitDetailView: View {
             return String(Int(value))
         } else {
             return String(format: "%.1f", value)
+        }
+    }
+    
+    private var historySection: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Divider()
+                .background(Color.white.opacity(0.2))
+                .padding(.vertical)
+            
+            HabitHistoryView(habit: habit)
         }
     }
     

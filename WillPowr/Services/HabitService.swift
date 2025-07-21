@@ -11,6 +11,8 @@ final class HabitService: ObservableObject {
     @Published var habits: [Habit] = []
     @Published var isLoading = false
     @Published var error: HabitError?
+    @Published var lastSyncTime: Date?
+    @Published var syncStatus: SyncStatus = .idle
     
     init(modelContext: ModelContext, dateManager: DateManager? = nil) {
         self.modelContext = modelContext
@@ -231,6 +233,9 @@ final class HabitService: ObservableObject {
             print("📊 Progress added but goal not yet reached: \(habit.currentProgress)/\(habit.goalTarget)")
         }
         
+        // Create or update history entry for progress tracking
+        createOrUpdateHistoryEntry(for: habit, on: dateManager.currentDate)
+        
         saveContext()
         
         // Trigger UI update
@@ -287,6 +292,10 @@ final class HabitService: ObservableObject {
         }
         
         print("✅ Habit marked complete: \(habit.name), Final streak: \(habit.streak), Longest ever: \(habit.longestStreak)")
+        
+        // Create history entry for this completion
+        createOrUpdateHistoryEntry(for: habit, on: today)
+        
         saveContext()
         
         // Trigger UI update
@@ -387,6 +396,10 @@ final class HabitService: ObservableObject {
         }
         
         print("✅ Quit habit marked successful: \(habit.name), Final streak: \(habit.streak), Longest ever: \(habit.longestStreak)")
+        
+        // Create history entry for this success
+        createOrUpdateHistoryEntry(for: habit, on: today)
+        
         saveContext()
         
         // Trigger UI update by refreshing habits
@@ -433,6 +446,10 @@ final class HabitService: ObservableObject {
         // Don't set lastCompletionDate for failures - only track successful completions
         
         print("❌ Habit failed: \(habit.name), Streak reset to: 0")
+        
+        // Create history entry for this failure
+        createOrUpdateHistoryEntry(for: habit, on: today)
+        
         saveContext()
         
         // Trigger UI update by refreshing habits
@@ -644,6 +661,92 @@ final class HabitService: ObservableObject {
         saveContext()
     }
     
+    // MARK: - History Management
+    
+    private func createOrUpdateHistoryEntry(for habit: Habit, on date: Date) {
+        let today = Calendar.current.startOfDay(for: date)
+        
+        // Check if an entry already exists for this date
+        if let existingEntry = habit.entryFor(date: today) {
+            // Update existing entry
+            existingEntry.progress = habit.currentProgress
+            existingEntry.isCompleted = habit.isCompleted
+            existingEntry.goalTarget = habit.goalTarget
+            existingEntry.goalUnit = habit.goalUnit
+            existingEntry.habitType = habit.habitType
+            existingEntry.quitHabitType = habit.quitHabitType
+            print("📝 Updated history entry for \(habit.name) on \(formatDate(today)): \(habit.currentProgress)")
+        } else {
+            // Create new entry
+            let entry = HabitEntry.createEntry(from: habit, on: today)
+            entry.habit = habit
+            habit.entries.append(entry)
+            modelContext.insert(entry)
+            print("📝 Created new history entry for \(habit.name) on \(formatDate(today)): \(habit.currentProgress)")
+        }
+    }
+    
+    func getHistoryEntries(for habit: Habit, limit: Int = 30) -> [HabitEntry] {
+        return Array(habit.sortedEntries.prefix(limit))
+    }
+    
+    func deleteHistoryEntry(_ entry: HabitEntry) {
+        modelContext.delete(entry)
+        saveContext()
+        objectWillChange.send()
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter.string(from: date)
+    }
+    
+    // MARK: - Background Sync Support
+    
+    func updateSyncStatus(_ status: SyncStatus) {
+        syncStatus = status
+        if status == .syncing {
+            lastSyncTime = Date()
+        }
+    }
+    
+    func getAutomaticTrackingHabits() -> [Habit] {
+        return habits.filter { $0.trackingMode == .automatic }
+    }
+    
+    func hasAutomaticHabits() -> Bool {
+        return !getAutomaticTrackingHabits().isEmpty
+    }
+    
+    func updateHabitProgress(_ habit: Habit, progress: Double, fromBackground: Bool = false) {
+        // Reset progress if it's a new day
+        if let lastCompletion = habit.lastCompletionDate,
+           !Calendar.current.isDate(lastCompletion, inSameDayAs: dateManager.currentDate) {
+            habit.currentProgress = 0
+        }
+        
+        let previousProgress = habit.currentProgress
+        habit.currentProgress = progress
+        
+        // Check if goal was just completed
+        if progress >= habit.goalTarget && !habit.isCompleted {
+            if fromBackground {
+                print("🎉 \(habit.name) goal completed automatically in background!")
+            }
+            completeHabit(habit)
+        }
+        
+        // Create or update history entry
+        createOrUpdateHistoryEntry(for: habit, on: dateManager.currentDate)
+        
+        // Only save if not from background (background sync will save in batch)
+        if !fromBackground {
+            saveContext()
+            objectWillChange.send()
+        }
+    }
+    
     // MARK: - Helper Methods
 }
 
@@ -691,5 +794,45 @@ extension EnvironmentValues {
     var habitService: HabitService? {
         get { self[HabitServiceKey.self] }
         set { self[HabitServiceKey.self] = newValue }
+    }
+}
+
+// MARK: - Sync Status
+
+enum SyncStatus: Equatable {
+    case idle
+    case syncing
+    case completed
+    case failed(Error)
+    
+    static func == (lhs: SyncStatus, rhs: SyncStatus) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle), (.syncing, .syncing), (.completed, .completed):
+            return true
+        case (.failed, .failed):
+            return true // Simplified comparison for errors
+        default:
+            return false
+        }
+    }
+    
+    var displayText: String {
+        switch self {
+        case .idle:
+            return "Ready"
+        case .syncing:
+            return "Syncing..."
+        case .completed:
+            return "Up to date"
+        case .failed:
+            return "Sync failed"
+        }
+    }
+    
+    var isActive: Bool {
+        if case .syncing = self {
+            return true
+        }
+        return false
     }
 } 

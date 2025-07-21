@@ -5,6 +5,7 @@ struct MinimalistDashboardView: View {
     @EnvironmentObject private var dateManager: DateManager
     @EnvironmentObject private var healthKitService: HealthKitService
     @EnvironmentObject private var autoSyncService: AutoSyncService
+    @EnvironmentObject private var backgroundSyncService: BackgroundSyncService
     
     @State private var showingAddHabit = false
     @State private var selectedHabit: Habit?
@@ -103,11 +104,17 @@ struct MinimalistDashboardView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.medium) {
-            // Date
-            Text(currentDateString.uppercased())
-                .micro()
-                .foregroundColor(DesignTokens.Colors.offWhite.opacity(0.5))
-                .tracking(DesignTokens.Typography.ultraWideSpacing)
+            // Date and sync status
+            HStack {
+                Text(currentDateString.uppercased())
+                    .micro()
+                    .foregroundColor(DesignTokens.Colors.offWhite.opacity(0.5))
+                    .tracking(DesignTokens.Typography.ultraWideSpacing)
+                
+                Spacer()
+                
+                SyncStatusView()
+            }
             
             // Giant title
             Text("WILL\nPOWR")

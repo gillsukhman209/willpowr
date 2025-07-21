@@ -127,29 +127,39 @@ final class AutoSyncService: ObservableObject {
     // MARK: - Sync Methods
     
     func syncAllHabits() async {
-        print("🔄 syncAllHabits called - HealthKit authorized: \(healthKitService.isAuthorized)")
+        let startTime = Date()
+        print("🔵 [FOREGROUND] ========== FOREGROUND SYNC STARTED ==========")
+        print("🔵 [FOREGROUND] HealthKit authorized: \(healthKitService.isAuthorized)")
+        print("🔵 [FOREGROUND] Start time: \(DateFormatter.detailedTime.string(from: startTime))")
         
         guard healthKitService.isAuthorized else {
-            print("⚠️ HealthKit not authorized - skipping auto sync")
+            print("🔴 [FOREGROUND] ⚠️ HealthKit not authorized - skipping foreground sync")
+            habitService.updateSyncStatus(.failed(AutoSyncError.notAuthorized))
             return
         }
         
         // Check if we've synced recently (unless it's a force sync)
         if let lastSync = lastSyncTime,
            Date().timeIntervalSince(lastSync) < 30 { // 30 seconds minimum between syncs
-            print("⏳ Last sync was \(Int(Date().timeIntervalSince(lastSync))) seconds ago - skipping duplicate sync")
+            print("🔵 [FOREGROUND] ⏳ Last sync was \(Int(Date().timeIntervalSince(lastSync))) seconds ago - skipping duplicate sync")
             return
         }
         
         let autoTrackingHabits = habitService.habits.filter { $0.trackingMode == .automatic }
         
         guard !autoTrackingHabits.isEmpty else {
-            print("ℹ️ No habits using automatic tracking - skipping sync")
+            print("🔵 [FOREGROUND] ℹ️ No habits using automatic tracking - sync complete")
+            habitService.updateSyncStatus(.idle)
             return
         }
         
-        print("🔄 Starting auto sync for \(autoTrackingHabits.count) habits...")
-        print("📊 Habits to sync: \(autoTrackingHabits.map { $0.name })")
+        // Update sync status to syncing
+        habitService.updateSyncStatus(.syncing)
+        
+        print("🔵 [FOREGROUND] Starting foreground sync for \(autoTrackingHabits.count) habits:")
+        for habit in autoTrackingHabits {
+            print("🔵 [FOREGROUND]   • \(habit.name) (\(habit.goalUnit.displayName))")
+        }
         
         var habitsUpdated = 0
         for habit in autoTrackingHabits {
@@ -163,14 +173,23 @@ final class AutoSyncService: ObservableObject {
         if habitsUpdated > 0 {
             do {
                 try habitService.saveChanges()
-                print("💾 Saved progress updates for \(habitsUpdated) habits")
+                let elapsed = Date().timeIntervalSince(startTime)
+                print("🔵 [FOREGROUND] 💾 Saved progress updates for \(habitsUpdated) habits")
+                print("🔵 [FOREGROUND] ✅ Foreground sync completed in \(String(format: "%.2f", elapsed))s")
+                habitService.updateSyncStatus(.completed)
             } catch {
-                print("❌ Error saving habit progress: \(error)")
+                print("🔴 [FOREGROUND] ❌ Error saving habit progress: \(error.localizedDescription)")
+                habitService.updateSyncStatus(.failed(error))
+                return
             }
+        } else {
+            let elapsed = Date().timeIntervalSince(startTime)
+            print("🔵 [FOREGROUND] ✅ Foreground sync completed in \(String(format: "%.2f", elapsed))s - no changes")
+            habitService.updateSyncStatus(.completed)
         }
         
         lastSyncTime = Date()
-        print("✅ Auto sync completed at \(DateFormatter.timeOnly.string(from: Date())) - \(habitsUpdated) habits updated")
+        print("🔵 [FOREGROUND] ========== FOREGROUND SYNC ENDED ==========")
     }
     
     private func syncHabit(_ habit: Habit) async -> Bool {
@@ -303,4 +322,23 @@ extension DateFormatter {
         formatter.dateStyle = .none
         return formatter
     }()
+}
+
+// MARK: - Auto Sync Error
+
+enum AutoSyncError: LocalizedError {
+    case notAuthorized
+    case noAutoHabits
+    case healthKitFailed(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .notAuthorized:
+            return "HealthKit authorization required"
+        case .noAutoHabits:
+            return "No automatic tracking habits found"
+        case .healthKitFailed(let message):
+            return "HealthKit sync failed: \(message)"
+        }
+    }
 } 

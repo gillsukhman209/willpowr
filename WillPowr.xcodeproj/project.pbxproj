@@ -10,9 +10,22 @@
 		1A7E1A802E2A2949002ED819 /* WillPowr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WillPowr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1A089DDC2E2E08F300638E0A /* Exceptions for "WillPowr" folder in "WillPowr" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1A7E1A7F2E2A2949002ED819 /* WillPowr */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1A7E1A822E2A2949002ED819 /* WillPowr */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1A089DDC2E2E08F300638E0A /* Exceptions for "WillPowr" folder in "WillPowr" target */,
+			);
 			path = WillPowr;
 			sourceTree = "<group>";
 		};
@@ -253,6 +266,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WillPowr/Info.plist;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "WillPowr needs access to your health data to automatically track habits like steps, exercise, sleep, and workouts to help you build better habits.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "WillPowr may write workout and mindfulness data when you complete exercise or meditation habits.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -294,6 +308,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WillPowr/Info.plist;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "WillPowr needs access to your health data to automatically track habits like steps, exercise, sleep, and workouts to help you build better habits.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "WillPowr may write workout and mindfulness data when you complete exercise or meditation habits.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
