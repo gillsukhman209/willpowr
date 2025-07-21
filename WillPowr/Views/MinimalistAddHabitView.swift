@@ -13,6 +13,7 @@ struct MinimalistAddHabitView: View {
     @State private var goalUnit: GoalUnit = .none
     @State private var goalDescription: String = ""
     @State private var trackingMode: TrackingMode = .manual
+    @State private var quitHabitType: QuitHabitType = .abstinence
     @State private var selectedPreset: PresetHabit? = nil
     @State private var showingErrorAlert = false
     @State private var errorMessage = ""
@@ -127,6 +128,7 @@ struct MinimalistAddHabitView: View {
                         goalUnit = preset.defaultGoalUnit
                         goalDescription = preset.goalDescription ?? ""
                         trackingMode = preset.defaultTrackingMode
+                        quitHabitType = preset.defaultQuitHabitType
                         showingPresets = false
                     }
                 } label: {
@@ -245,12 +247,53 @@ struct MinimalistAddHabitView: View {
     
     private var presetGoalConfiguration: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("Goal Configuration")
+            if let preset = selectedPreset, preset.habitType == .quit && quitHabitType == .abstinence {
+                // Abstinence habits - no goal configuration needed
+                abstinenceHabitExplanation
+            } else {
+                // Limit habits and build habits - show goal configuration
+                goalConfigurationSection
+            }
+        }
+    }
+    
+    private var abstinenceHabitExplanation: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("Complete Abstinence")
                 .font(.headline)
                 .foregroundColor(.white)
             
             VStack(alignment: .leading, spacing: 10) {
-                Text("Target")
+                HStack {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.red)
+                        .font(.title3)
+                    
+                    Text("Goal: Zero Usage")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                }
+                
+                Text("This habit focuses on completely avoiding the behavior. No daily limits or targets - the goal is total abstinence.")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.leading)
+            }
+            .padding()
+            .background(Color.red.opacity(0.1))
+            .cornerRadius(12)
+        }
+    }
+    
+    private var goalConfigurationSection: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text(quitHabitType == .limit ? "Daily Limit Configuration" : "Goal Configuration")
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            VStack(alignment: .leading, spacing: 10) {
+                Text(quitHabitType == .limit ? "Daily Limit" : "Target")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.6))
                 
@@ -382,12 +425,57 @@ struct MinimalistAddHabitView: View {
                 }
             }
             
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Goal")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.6))
-                
-                VStack(spacing: 10) {
+            if selectedHabitType == .quit {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Quit Approach")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    VStack(spacing: 8) {
+                        ForEach(QuitHabitType.allCases, id: \.self) { type in
+                            Button {
+                                quitHabitType = type
+                            } label: {
+                                HStack {
+                                    Image(systemName: type.iconName)
+                                        .foregroundColor(quitHabitType == type ? .white : .white.opacity(0.6))
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(type.displayName)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(quitHabitType == type ? .white : .white.opacity(0.6))
+                                        
+                                        Text(type.description)
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.5))
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if quitHabitType == type {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(DesignTokens.Colors.electricBlue)
+                                    }
+                                }
+                                .padding()
+                                .background(
+                                    Color.white.opacity(quitHabitType == type ? 0.1 : 0.05)
+                                )
+                                .cornerRadius(12)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if selectedHabitType == .build || (selectedHabitType == .quit && quitHabitType == .limit) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(selectedHabitType == .quit && quitHabitType == .limit ? "Daily Limit" : "Goal")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    VStack(spacing: 10) {
                     HStack(spacing: 15) {
                         TextField("Target", value: $goalTarget, format: .number)
                             .textFieldStyle(MinimalistTextFieldStyle())
@@ -423,9 +511,10 @@ struct MinimalistAddHabitView: View {
                         .padding(.horizontal, 1)
                     }
                 }
+                }
             }
             
-            if goalUnit.supportsAutoTracking {
+            if goalUnit.supportsAutoTracking && selectedHabitType == .build {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Tracking Mode")
                         .font(.caption)
@@ -487,7 +576,8 @@ struct MinimalistAddHabitView: View {
                 goalTarget: goalTarget,
                 goalUnit: goalUnit,
                 goalDescription: goalDescription.isEmpty ? preset.goalDescription : goalDescription,
-                trackingMode: trackingMode
+                trackingMode: trackingMode,
+                quitHabitType: quitHabitType
             )
         } else {
             habitService.addHabit(
@@ -498,7 +588,8 @@ struct MinimalistAddHabitView: View {
                 goalTarget: goalTarget,
                 goalUnit: goalUnit,
                 goalDescription: goalDescription.isEmpty ? nil : goalDescription,
-                trackingMode: trackingMode
+                trackingMode: trackingMode,
+                quitHabitType: quitHabitType
             )
         }
         
@@ -522,9 +613,19 @@ struct MinimalistAddHabitView: View {
     
     private func canSaveHabit() -> Bool {
         if selectedPreset != nil {
+            // For abstinence habits, goalTarget of 0 is valid
+            if let preset = selectedPreset, preset.habitType == .quit && quitHabitType == .abstinence {
+                return true
+            }
+            // For other habits, goalTarget must be > 0
             return goalTarget > 0
         } else {
             let trimmedName = customHabitName.trimmingCharacters(in: .whitespacesAndNewlines)
+            // For custom abstinence habits, goalTarget of 0 is valid
+            if selectedHabitType == .quit && quitHabitType == .abstinence {
+                return !trimmedName.isEmpty && !habitService.habitExists(name: trimmedName)
+            }
+            // For other custom habits, goalTarget must be > 0
             return !trimmedName.isEmpty && goalTarget > 0 && !habitService.habitExists(name: trimmedName)
         }
     }

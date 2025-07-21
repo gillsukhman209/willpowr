@@ -96,7 +96,7 @@ final class HabitService: ObservableObject {
         isLoading = false
     }
     
-    func addHabit(name: String, type: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil, trackingMode: TrackingMode = .manual) {
+    func addHabit(name: String, type: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil, trackingMode: TrackingMode = .manual, quitHabitType: QuitHabitType = .abstinence) {
         print("🔧 HabitService.addHabit called with name: \(name), type: \(type), goal: \(goalTarget) \(goalUnit.displayName), trackingMode: \(trackingMode)")
         
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -121,7 +121,8 @@ final class HabitService: ObservableObject {
             goalTarget: goalTarget,
             goalUnit: goalUnit,
             goalDescription: goalDescription,
-            trackingMode: trackingMode
+            trackingMode: trackingMode,
+            quitHabitType: quitHabitType
         )
         
         modelContext.insert(habit)
@@ -160,7 +161,8 @@ final class HabitService: ObservableObject {
             goalTarget: preset.defaultGoalTarget,
             goalUnit: preset.defaultGoalUnit,
             goalDescription: preset.goalDescription,
-            trackingMode: preset.defaultTrackingMode
+            trackingMode: preset.defaultTrackingMode,
+            quitHabitType: preset.defaultQuitHabitType
         )
     }
     
@@ -207,6 +209,12 @@ final class HabitService: ObservableObject {
             habit.currentProgress = 0
         }
         
+        // Handle quit habits differently
+        if habit.habitType == .quit {
+            handleQuitHabitProgress(habit, progress: progress)
+            return
+        }
+        
         // Track if habit was already completed today before adding progress
         let wasAlreadyCompleted = habit.isCompleted
         
@@ -224,6 +232,9 @@ final class HabitService: ObservableObject {
         }
         
         saveContext()
+        
+        // Trigger UI update
+        objectWillChange.send()
     }
     
     private func markHabitComplete(_ habit: Habit) {
@@ -277,6 +288,9 @@ final class HabitService: ObservableObject {
         
         print("✅ Habit marked complete: \(habit.name), Final streak: \(habit.streak), Longest ever: \(habit.longestStreak)")
         saveContext()
+        
+        // Trigger UI update
+        objectWillChange.send()
     }
     
     // MARK: - Quit Habit Helpers
@@ -310,15 +324,36 @@ final class HabitService: ObservableObject {
         let today = dateManager.currentDate
         
         print("✅ markQuitHabitSuccess called for: \(habit.name) on \(dateManager.formatDebugDate())")
+        print("   Quit habit type: \(habit.quitHabitType.displayName)")
         print("   Previous streak: \(habit.streak)")
         print("   Last success date: \(habit.lastCompletionDate?.description ?? "none")")
         print("   Is completed: \(habit.isCompleted)")
+        
+        guard habit.habitType == .quit else {
+            print("⚠️ Cannot mark non-quit habit as quit success")
+            return
+        }
         
         // Check if already marked successful today
         if let lastCompletion = habit.lastCompletionDate,
            calendar.isDate(lastCompletion, inSameDayAs: today) {
             print("⚠️ Quit habit already marked successful today, skipping")
             return
+        }
+        
+        // Handle different quit habit types
+        if habit.isAbstinenceHabit {
+            // For abstinence habits, ensure no progress was recorded today
+            habit.currentProgress = 0
+            print("   🚫 Abstinence habit: Ensuring progress is 0")
+        } else if habit.isLimitHabit {
+            // For limit habits, check if under the limit
+            if habit.currentProgress > habit.goalTarget {
+                print("   ⚠️ Limit habit: Current progress (\(habit.currentProgress)) exceeds limit (\(habit.goalTarget))")
+                print("   Cannot mark as successful while over limit")
+                return
+            }
+            print("   ✅ Limit habit: Under limit (\(habit.currentProgress)/\(habit.goalTarget))")
         }
         
         // Update streak logic for quit habits - ONLY count consecutive explicit successes
@@ -353,10 +388,14 @@ final class HabitService: ObservableObject {
         
         print("✅ Quit habit marked successful: \(habit.name), Final streak: \(habit.streak), Longest ever: \(habit.longestStreak)")
         saveContext()
+        
+        // Trigger UI update by refreshing habits
+        objectWillChange.send()
     }
     
     func failHabit(_ habit: Habit) {
         print("❌ Failing habit: \(habit.name)")
+        print("   Quit habit type: \(habit.quitHabitType.displayName)")
         
         guard habit.habitType == .quit else {
             print("⚠️ Cannot fail a build habit")
@@ -373,14 +412,31 @@ final class HabitService: ObservableObject {
             return
         }
         
-        // Reset streak and progress
-        habit.streak = 0
-        habit.currentProgress = 0
-        habit.isCompleted = false
+        // Handle different quit habit types
+        if habit.isAbstinenceHabit {
+            // For abstinence habits, any failure resets everything
+            habit.streak = 0
+            habit.currentProgress = 1 // Mark that there was some activity
+            habit.isCompleted = false
+            print("   🚫 Abstinence habit failed: Streak reset to 0, marked as relapsed")
+        } else if habit.isLimitHabit {
+            // For limit habits, failure means exceeding the limit
+            if habit.currentProgress <= habit.goalTarget {
+                // If currently under limit, mark as over limit
+                habit.currentProgress = habit.goalTarget + 1
+            }
+            habit.streak = 0
+            habit.isCompleted = false
+            print("   📊 Limit habit failed: Over limit (\(habit.currentProgress)/\(habit.goalTarget)), streak reset")
+        }
+        
         // Don't set lastCompletionDate for failures - only track successful completions
         
         print("❌ Habit failed: \(habit.name), Streak reset to: 0")
         saveContext()
+        
+        // Trigger UI update by refreshing habits
+        objectWillChange.send()
     }
     
     func resetHabitStreak(_ habit: Habit) {
@@ -551,6 +607,41 @@ final class HabitService: ObservableObject {
             print("❌ Debug: Error deleting all habits: \(error)")
             self.error = .deleteFailed(error.localizedDescription)
         }
+    }
+    
+    // MARK: - Quit Habit Progress Handling
+    
+    private func handleQuitHabitProgress(_ habit: Habit, progress: Double) {
+        print("🔄 Handling quit habit progress for: \(habit.name) (\(habit.quitHabitType.displayName))")
+        print("   Adding progress: \(progress)")
+        print("   Current progress: \(habit.currentProgress)")
+        print("   Goal target: \(habit.goalTarget)")
+        
+        if habit.isAbstinenceHabit {
+            // For abstinence habits, any progress means failure
+            habit.currentProgress += progress
+            if habit.currentProgress > 0 {
+                habit.streak = 0
+                habit.isCompleted = false
+                print("   🚫 Abstinence habit: Any progress means failure - streak reset")
+            }
+        } else if habit.isLimitHabit {
+            // For limit habits, add progress and check against limit
+            habit.currentProgress += progress
+            
+            if habit.currentProgress > habit.goalTarget {
+                // Exceeded limit - this is a failure
+                habit.streak = 0
+                habit.isCompleted = false
+                print("   📊 Limit exceeded: \(habit.currentProgress)/\(habit.goalTarget) - habit failed")
+            } else {
+                // Still under limit - this is okay
+                habit.isCompleted = false // Will be marked complete when explicitly confirmed
+                print("   📊 Under limit: \(habit.currentProgress)/\(habit.goalTarget) - still successful")
+            }
+        }
+        
+        saveContext()
     }
     
     // MARK: - Helper Methods

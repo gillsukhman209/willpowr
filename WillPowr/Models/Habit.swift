@@ -75,6 +75,34 @@ enum TrackingMode: String, CaseIterable, Codable {
     }
 }
 
+// MARK: - Quit Habit Type
+
+enum QuitHabitType: String, CaseIterable, Codable {
+    case abstinence = "abstinence"
+    case limit = "limit"
+    
+    var displayName: String {
+        switch self {
+        case .abstinence: return "Complete Abstinence"
+        case .limit: return "Daily Limit"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .abstinence: return "Completely avoid this behavior"
+        case .limit: return "Set a daily limit for this behavior"
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .abstinence: return "xmark.circle.fill"
+        case .limit: return "gauge.with.dots.needle.33percent"
+        }
+    }
+}
+
 @Model
 final class Habit {
     var id: UUID
@@ -94,8 +122,9 @@ final class Habit {
     var currentProgress: Double = 0.0 // Default value for migration
     var goalDescription: String? // Optional for migration
     var trackingMode: TrackingMode = TrackingMode.manual // Default value for migration
+    var quitHabitType: QuitHabitType = QuitHabitType.abstinence // Default for migration
     
-    init(name: String, habitType: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil, trackingMode: TrackingMode = .manual) {
+    init(name: String, habitType: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil, trackingMode: TrackingMode = .manual, quitHabitType: QuitHabitType = .abstinence) {
         self.id = UUID()
         self.name = name
         self.habitType = habitType
@@ -111,6 +140,7 @@ final class Habit {
         self.currentProgress = 0
         self.goalDescription = goalDescription
         self.trackingMode = trackingMode
+        self.quitHabitType = quitHabitType
     }
     
     // MARK: - Computed Properties
@@ -155,6 +185,75 @@ final class Habit {
         return canComplete(on: Date())
     }
     
+    // MARK: - Quit Habit Properties
+    
+    var isQuitHabit: Bool {
+        return habitType == .quit
+    }
+    
+    var isAbstinenceHabit: Bool {
+        return habitType == .quit && quitHabitType == .abstinence
+    }
+    
+    var isLimitHabit: Bool {
+        return habitType == .quit && quitHabitType == .limit
+    }
+    
+    var isSuccessfulToday: Bool {
+        if habitType == .build {
+            return isGoalMet
+        } else if isAbstinenceHabit {
+            // For abstinence habits, success = explicitly marked as completed today AND no progress
+            let today = Date()
+            let isCompletedToday = if let lastCompletion = lastCompletionDate {
+                Calendar.current.isDate(lastCompletion, inSameDayAs: today)
+            } else {
+                false
+            }
+            return isCompletedToday && currentProgress == 0
+        } else if isLimitHabit {
+            // For limit habits, success = under or at the limit
+            return currentProgress <= goalTarget
+        }
+        return isGoalMet
+    }
+    
+    var quitHabitStatusText: String {
+        if isAbstinenceHabit {
+            if isSuccessfulToday {
+                return "Stayed Clean Today"
+            } else if currentProgress > 0 {
+                return "Relapsed Today"
+            } else {
+                return "No Activity Yet Today"
+            }
+        } else if isLimitHabit {
+            let current = formatValue(currentProgress)
+            let limit = formatValue(goalTarget)
+            let status = currentProgress <= goalTarget ? "✅" : "⚠️"
+            return "\(status) \(current) / \(limit) \(goalUnit.displayName)"
+        }
+        return displayProgress
+    }
+    
+    var cleanDaysStreak: Int {
+        // For quit habits, streak represents consecutive clean/successful days
+        return isSuccessfulToday ? streak : 0
+    }
+    
+    var hasInteractedToday: Bool {
+        let today = Date()
+        if let lastCompletion = lastCompletionDate,
+           Calendar.current.isDate(lastCompletion, inSameDayAs: today) {
+            return true
+        }
+        // For abstinence habits, having progress > 0 means they failed today
+        if isAbstinenceHabit && currentProgress > 0 {
+            return true
+        }
+        return false
+    }
+    
     private func formatValue(_ value: Double) -> String {
         if value == floor(value) {
             return String(Int(value))
@@ -195,8 +294,9 @@ struct PresetHabit {
     let defaultGoalUnit: GoalUnit
     let goalDescription: String?
     let defaultTrackingMode: TrackingMode
+    let defaultQuitHabitType: QuitHabitType
     
-    init(name: String, iconName: String, habitType: HabitType, defaultGoalTarget: Double = 1, defaultGoalUnit: GoalUnit = .none, goalDescription: String? = nil, defaultTrackingMode: TrackingMode = .manual) {
+    init(name: String, iconName: String, habitType: HabitType, defaultGoalTarget: Double = 1, defaultGoalUnit: GoalUnit = .none, goalDescription: String? = nil, defaultTrackingMode: TrackingMode = .manual, defaultQuitHabitType: QuitHabitType = .abstinence) {
         self.name = name
         self.iconName = iconName
         self.habitType = habitType
@@ -204,6 +304,7 @@ struct PresetHabit {
         self.defaultGoalUnit = defaultGoalUnit
         self.goalDescription = goalDescription
         self.defaultTrackingMode = defaultTrackingMode
+        self.defaultQuitHabitType = defaultQuitHabitType
     }
 }
 
@@ -219,13 +320,19 @@ extension PresetHabit {
     ]
     
     static let quitHabits: [PresetHabit] = [
-        PresetHabit(name: "Limit Social Media", iconName: "iphone.slash", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .hours, goalDescription: "Limit social media to 1 hour daily"),
-        PresetHabit(name: "Reduce Sugar", iconName: "cube.fill", habitType: .quit, defaultGoalTarget: 25, defaultGoalUnit: .grams, goalDescription: "Consume less than 25g sugar daily"),
-        PresetHabit(name: "Quit Smoking", iconName: "smoke.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .count, goalDescription: "Smoke 0 cigarettes daily"),
-        PresetHabit(name: "Limit Junk Food", iconName: "takeoutbag.and.cup.and.straw.fill", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .count, goalDescription: "Limit junk food to 1 serving daily"),
-        PresetHabit(name: "Reduce Procrastination", iconName: "clock.fill", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .none, goalDescription: "Avoid procrastination daily"),
-        PresetHabit(name: "Stop Negative Thinking", iconName: "brain.filled.head.profile", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .none, goalDescription: "Practice positive thinking daily"),
-        PresetHabit(name: "Limit Screen Time", iconName: "tv.fill", habitType: .quit, defaultGoalTarget: 6, defaultGoalUnit: .hours, goalDescription: "Limit screen time to 6 hours daily")
+        // Abstinence-based quit habits (complete avoidance)
+        PresetHabit(name: "Quit Smoking", iconName: "smoke.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid smoking", defaultQuitHabitType: .abstinence),
+        PresetHabit(name: "Quit Vaping", iconName: "cloud.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid vaping", defaultQuitHabitType: .abstinence),
+        PresetHabit(name: "Quit Drinking", iconName: "wineglass.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid alcohol", defaultQuitHabitType: .abstinence),
+        PresetHabit(name: "Avoid Gambling", iconName: "dice.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid gambling", defaultQuitHabitType: .abstinence),
+        PresetHabit(name: "Stop Nail Biting", iconName: "hand.raised.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid nail biting", defaultQuitHabitType: .abstinence),
+        
+        // Limit-based quit habits (daily limits)
+        PresetHabit(name: "Limit Social Media", iconName: "iphone.slash", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .hours, goalDescription: "Limit social media to 1 hour daily", defaultQuitHabitType: .limit),
+        PresetHabit(name: "Limit Screen Time", iconName: "tv.fill", habitType: .quit, defaultGoalTarget: 6, defaultGoalUnit: .hours, goalDescription: "Limit screen time to 6 hours daily", defaultQuitHabitType: .limit),
+        PresetHabit(name: "Limit Coffee", iconName: "cup.and.saucer.fill", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .count, goalDescription: "Limit coffee to 1 cup daily", defaultQuitHabitType: .limit),
+        PresetHabit(name: "Limit Junk Food", iconName: "takeoutbag.and.cup.and.straw.fill", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .count, goalDescription: "Limit junk food to 1 serving daily", defaultQuitHabitType: .limit),
+        PresetHabit(name: "Limit Sugar Intake", iconName: "cube.fill", habitType: .quit, defaultGoalTarget: 25, defaultGoalUnit: .grams, goalDescription: "Limit sugar to 25g daily", defaultQuitHabitType: .limit)
     ]
     
     static let allPresets: [PresetHabit] = buildHabits + quitHabits

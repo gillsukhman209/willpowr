@@ -153,14 +153,20 @@ struct MinimalistHabitDetailView: View {
     
     private var actionsSection: some View {
         VStack(spacing: 15) {
-            if habit.goalUnit == .none {
-                // Binary habits - simple toggle
+            if habit.isAbstinenceHabit {
+                // Abstinence quit habits - clean/failed buttons
+                abstinenceHabitControls
+            } else if habit.isLimitHabit {
+                // Limit quit habits - usage tracking
+                limitHabitControls
+            } else if habit.habitType == .build && habit.goalUnit == .none {
+                // Binary build habits - simple toggle
                 binaryHabitToggle
             } else if habit.canUseAutoTracking {
                 // Automatic habits - read-only display
                 automaticTrackingDisplay
             } else {
-                // Manual habits - interactive progress controls
+                // Manual build habits - interactive progress controls
                 manualProgressControls
             }
         }
@@ -168,6 +174,7 @@ struct MinimalistHabitDetailView: View {
     
     private var binaryHabitToggle: some View {
         Button {
+            print("🔘 Binary habit toggle tapped for: \(habit.name)")
             habitService.completeHabit(habit)
         } label: {
             HStack {
@@ -187,6 +194,149 @@ struct MinimalistHabitDetailView: View {
             )
             .cornerRadius(12)
         }
+    }
+    
+    private var abstinenceHabitControls: some View {
+        VStack(spacing: 12) {
+            // Current status display
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Today's Status")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    Text(habit.quitHabitStatusText)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(habit.isSuccessfulToday ? DesignTokens.Colors.neonGreen : .orange)
+                }
+                
+                Spacer()
+                
+                if habit.cleanDaysStreak > 0 {
+                    VStack(spacing: 2) {
+                        Text("\(habit.cleanDaysStreak)")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(DesignTokens.Colors.neonGreen)
+                        Text("clean days")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                }
+            }
+            .padding()
+            .background(Color.white.opacity(0.05))
+            .cornerRadius(12)
+            
+            // Action buttons
+            HStack(spacing: 12) {
+                Button {
+                    // Mark as successful (stayed clean)
+                    print("🔘 Stayed Clean button tapped for: \(habit.name)")
+                    habitService.markQuitHabitSuccess(habit)
+                } label: {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title3)
+                        Text("Stayed Clean")
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        habit.isSuccessfulToday ?
+                        DesignTokens.Colors.neonGreen :
+                        DesignTokens.Colors.electricBlue
+                    )
+                    .cornerRadius(12)
+                }
+                .disabled(habit.hasInteractedToday)
+                
+                Button {
+                    // Mark as failed
+                    print("🔘 I Failed button tapped for: \(habit.name)")
+                    habitService.failHabit(habit)
+                } label: {
+                    HStack {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                        Text("I Failed")
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.red.opacity(0.8))
+                    .cornerRadius(12)
+                }
+                .disabled(habit.hasInteractedToday)
+            }
+        }
+    }
+    
+    private var limitHabitControls: some View {
+        VStack(spacing: 12) {
+            // Current usage display
+            currentProgressDisplay
+            
+            // Quick add buttons for logging usage
+            VStack(spacing: 8) {
+                Text("Log Usage")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
+                    ForEach(getQuickAddValues(), id: \.self) { value in
+                        limitUsageButton(value: value)
+                    }
+                }
+            }
+            
+            // Goal status indicator
+            limitStatusIndicator
+        }
+    }
+    
+    private func limitUsageButton(value: Double) -> some View {
+        Button {
+            print("🔘 Limit usage button tapped for: \(habit.name), adding progress: \(value)")
+            habitService.addProgressToHabit(habit, progress: value)
+        } label: {
+            Text("+\(formatValue(value))")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(
+                    habit.currentProgress + value > habit.goalTarget ?
+                    Color.red.opacity(0.3) :
+                    DesignTokens.Colors.electricBlue.opacity(0.3)
+                )
+                .cornerRadius(8)
+        }
+    }
+    
+    private var limitStatusIndicator: some View {
+        HStack {
+            Image(systemName: habit.isSuccessfulToday ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundColor(habit.isSuccessfulToday ? DesignTokens.Colors.neonGreen : .orange)
+            
+            Text(habit.isSuccessfulToday ? "Under your daily limit" : "Over your daily limit")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(habit.isSuccessfulToday ? DesignTokens.Colors.neonGreen : .orange)
+            
+            Spacer()
+        }
+        .padding()
+        .background(
+            (habit.isSuccessfulToday ? DesignTokens.Colors.neonGreen : Color.orange).opacity(0.1)
+        )
+        .cornerRadius(12)
     }
     
     private var automaticTrackingDisplay: some View {
@@ -267,6 +417,7 @@ struct MinimalistHabitDetailView: View {
     
     private func quickActionButton(value: Double) -> some View {
         Button {
+            print("🔘 Quick action button tapped for: \(habit.name), adding progress: \(value)")
             habitService.addProgressToHabit(habit, progress: value)
         } label: {
             Text("+\(formatValue(value))")
