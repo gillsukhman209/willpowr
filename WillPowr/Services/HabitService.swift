@@ -99,14 +99,22 @@ final class HabitService: ObservableObject {
     func addHabit(name: String, type: HabitType, iconName: String, isCustom: Bool = false, goalTarget: Double = 1, goalUnit: GoalUnit = .none, goalDescription: String? = nil, trackingMode: TrackingMode = .manual) {
         print("🔧 HabitService.addHabit called with name: \(name), type: \(type), goal: \(goalTarget) \(goalUnit.displayName), trackingMode: \(trackingMode)")
         
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !trimmedName.isEmpty else {
             print("❌ Invalid name: '\(name)'")
             error = .invalidName
             return
         }
         
+        guard !habitExists(name: trimmedName) else {
+            print("❌ Duplicate habit: '\(trimmedName)' already exists")
+            error = .duplicateHabit
+            return
+        }
+        
         let habit = Habit(
-            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            name: trimmedName,
             habitType: type,
             iconName: iconName,
             isCustom: isCustom,
@@ -558,6 +566,7 @@ extension Notification.Name {
 
 enum HabitError: Error, LocalizedError {
     case invalidName
+    case duplicateHabit
     case loadingFailed(String)
     case savingFailed(String)
     case habitNotFound
@@ -567,6 +576,8 @@ enum HabitError: Error, LocalizedError {
         switch self {
         case .invalidName:
             return "Please enter a valid habit name"
+        case .duplicateHabit:
+            return "A habit with this name already exists"
         case .loadingFailed(let message):
             return "Failed to load habits: \(message)"
         case .savingFailed(let message):

@@ -14,6 +14,8 @@ struct MinimalistAddHabitView: View {
     @State private var goalDescription: String = ""
     @State private var trackingMode: TrackingMode = .manual
     @State private var selectedPreset: PresetHabit? = nil
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
     
     private var presetHabits: [HabitType: [PresetHabit]] {
         [
@@ -67,6 +69,18 @@ struct MinimalistAddHabitView: View {
                 }
             }
         }
+        .alert("Error", isPresented: $showingErrorAlert) {
+            Button("OK") { }
+        } message: {
+            Text(errorMessage)
+        }
+        .onReceive(habitService.$error) { error in
+            if let error = error {
+                errorMessage = error.localizedDescription
+                showingErrorAlert = true
+                habitService.error = nil // Clear the error
+            }
+        }
     }
     
     private var presetSection: some View {
@@ -102,39 +116,69 @@ struct MinimalistAddHabitView: View {
             .padding(.bottom, 10)
             
             ForEach(presetHabits[selectedHabitType] ?? [], id: \.name) { preset in
+                let isAlreadyAdded = habitService.habitExists(name: preset.name)
+                
                 Button {
-                    selectedPreset = preset
-                    goalTarget = preset.defaultGoalTarget
-                    goalUnit = preset.defaultGoalUnit
-                    goalDescription = preset.goalDescription ?? ""
-                    trackingMode = preset.defaultTrackingMode
-                    showingPresets = false
+                    if isAlreadyAdded {
+                        showDuplicateError(for: preset.name)
+                    } else {
+                        selectedPreset = preset
+                        goalTarget = preset.defaultGoalTarget
+                        goalUnit = preset.defaultGoalUnit
+                        goalDescription = preset.goalDescription ?? ""
+                        trackingMode = preset.defaultTrackingMode
+                        showingPresets = false
+                    }
                 } label: {
                     HStack {
                         Image(systemName: preset.iconName)
                             .font(.title2)
-                            .foregroundColor(DesignTokens.Colors.electricBlue)
+                            .foregroundColor(
+                                isAlreadyAdded ? .gray : DesignTokens.Colors.electricBlue
+                            )
                             .frame(width: 40)
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(preset.name)
-                                .font(.headline)
-                                .foregroundColor(.white)
+                            HStack {
+                                Text(preset.name)
+                                    .font(.headline)
+                                    .foregroundColor(isAlreadyAdded ? .gray : .white)
+                                
+                                if isAlreadyAdded {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.caption)
+                                        .foregroundColor(DesignTokens.Colors.neonGreen)
+                                }
+                            }
                             
-                            Text(preset.goalDescription ?? "")
+                            Text(isAlreadyAdded ? "Already added" : (preset.goalDescription ?? ""))
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.6))
                         }
                         
                         Spacer()
                         
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.white.opacity(0.3))
+                        Image(systemName: isAlreadyAdded ? "checkmark.circle.fill" : "chevron.right")
+                            .foregroundColor(
+                                isAlreadyAdded ? DesignTokens.Colors.neonGreen : .white.opacity(0.3)
+                            )
                     }
                     .padding()
-                    .background(Color.white.opacity(0.05))
+                    .background(
+                        isAlreadyAdded ? 
+                        Color.white.opacity(0.02) : 
+                        Color.white.opacity(0.05)
+                    )
                     .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                isAlreadyAdded ? DesignTokens.Colors.neonGreen.opacity(0.3) : Color.clear,
+                                lineWidth: 1
+                            )
+                    )
                 }
+                .disabled(isAlreadyAdded)
             }
             
             Button {
@@ -294,8 +338,21 @@ struct MinimalistAddHabitView: View {
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.6))
                 
-                TextField("Enter habit name", text: $customHabitName)
-                    .textFieldStyle(MinimalistTextFieldStyle())
+                VStack(alignment: .leading, spacing: 4) {
+                    TextField("Enter habit name", text: $customHabitName)
+                        .textFieldStyle(MinimalistTextFieldStyle())
+                    
+                    if !customHabitName.isEmpty && habitService.habitExists(name: customHabitName.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                                .font(.caption)
+                            Text("This habit name is already taken")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+                    }
+                }
             }
             
             VStack(alignment: .leading, spacing: 10) {
@@ -414,6 +471,11 @@ struct MinimalistAddHabitView: View {
         }
     }
     
+    private func showDuplicateError(for habitName: String) {
+        errorMessage = "You already have a habit named '\(habitName)'"
+        showingErrorAlert = true
+    }
+    
     private func saveHabit() {
         if let preset = selectedPreset {
             // Create habit with configured values, not preset defaults
@@ -439,7 +501,13 @@ struct MinimalistAddHabitView: View {
                 trackingMode: trackingMode
             )
         }
-        dismiss()
+        
+        // Check if there was an error, if not, dismiss
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if habitService.error == nil {
+                dismiss()
+            }
+        }
     }
     
     private func getNavigationTitle() -> String {
@@ -456,7 +524,8 @@ struct MinimalistAddHabitView: View {
         if selectedPreset != nil {
             return goalTarget > 0
         } else {
-            return !customHabitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && goalTarget > 0
+            let trimmedName = customHabitName.trimmingCharacters(in: .whitespacesAndNewlines)
+            return !trimmedName.isEmpty && goalTarget > 0 && !habitService.habitExists(name: trimmedName)
         }
     }
 }
