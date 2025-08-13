@@ -3,6 +3,7 @@ import SwiftUI
 struct MinimalistDashboardView: View {
     @EnvironmentObject private var habitService: HabitService
     @EnvironmentObject private var dateManager: DateManager
+    @EnvironmentObject private var notificationService: NotificationService
     @EnvironmentObject private var healthKitService: HealthKitService
     @EnvironmentObject private var autoSyncService: AutoSyncService
     @EnvironmentObject private var backgroundSyncService: BackgroundSyncService
@@ -140,6 +141,42 @@ struct MinimalistDashboardView: View {
                         Image(systemName: showDebugPanel ? "eye.fill" : "eye")
                             .font(.caption)
                             .foregroundColor(showDebugPanel ? .orange : .secondary)
+                            .frame(width: 20, height: 20)
+                    }
+                    
+                    // Smart Notification Test Button
+                    Button(action: {
+                        Task {
+                            if !notificationService.hasPermission {
+                                await notificationService.requestPermission()
+                            } else {
+                                notificationService.sendSmartTestNotification(for: habitService)
+                            }
+                        }
+                    }) {
+                        Image(systemName: "bell.badge.fill")
+                            .font(.caption)
+                            .foregroundColor(notificationService.hasPermission ? .blue : .gray)
+                            .frame(width: 20, height: 20)
+                    }
+                    
+                    // Delayed Notification Test Button
+                    Button(action: {
+                        notificationService.sendDelayedTestNotification(delay: 5)
+                    }) {
+                        Image(systemName: "clock.fill")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                            .frame(width: 20, height: 20)
+                    }
+                    
+                    // Smart Reminders Button
+                    Button(action: {
+                        notificationService.scheduleHabitReminders(for: habitService)
+                    }) {
+                        Image(systemName: "alarm.fill")
+                            .font(.caption)
+                            .foregroundColor(.purple)
                             .frame(width: 20, height: 20)
                     }
                 }

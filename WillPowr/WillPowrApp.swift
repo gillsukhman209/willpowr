@@ -89,6 +89,7 @@ struct WillPowrApp: App {
         @State private var backgroundSyncService: BackgroundSyncService?
         @StateObject private var dateManager = DateManager()
         @StateObject private var healthKitService = HealthKitService()
+        @StateObject private var notificationService = NotificationService()
         @AppStorage("hasShownPermissions") private var hasShownPermissions = false
         @State private var showPermissions = false
         
@@ -101,6 +102,7 @@ struct WillPowrApp: App {
                         .environmentObject(habitService)
                         .environmentObject(dateManager)
                         .environmentObject(healthKitService)
+                        .environmentObject(notificationService)
                         .environmentObject(autoSyncService)
                         .environmentObject(backgroundSyncService)
                         .sheet(isPresented: $showPermissions) {
@@ -126,6 +128,15 @@ struct WillPowrApp: App {
                 
                 // Validate and repair all streaks on startup (NEW SYSTEM)
                 service.validateAndRepairAllStreaks()
+                
+                // Request notification permission and setup reminders on app launch
+                Task {
+                    let granted = await notificationService.requestPermission()
+                    if granted {
+                        // Schedule smart reminders once permission is granted
+                        notificationService.scheduleHabitReminders(for: service)
+                    }
+                }
                 
                 // Create AutoSyncService after HabitService is available
                 let syncService = AutoSyncService(
