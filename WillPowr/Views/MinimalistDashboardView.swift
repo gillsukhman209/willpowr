@@ -165,12 +165,6 @@ struct MinimalistDashboardView: View {
                     label: "DONE",
                     color: DesignTokens.Colors.neonGreen
                 )
-                
-                StatBlock(
-                    number: calculateAverageStreak(),
-                    label: "AVG",
-                    color: DesignTokens.Colors.hotPink
-                )
             }
             .padding(.top, DesignTokens.Spacing.large)
         }
@@ -248,12 +242,6 @@ struct MinimalistDashboardView: View {
         return formatter.string(from: dateManager.currentDate)
     }
     
-    private func calculateAverageStreak() -> Int {
-        let habits = habitService.habits
-        guard !habits.isEmpty else { return 0 }
-        let totalStreak = habits.reduce(0) { $0 + $1.streak }
-        return totalStreak / habits.count
-    }
     
     private func getMotivationalQuote() -> String {
         let quotes = [

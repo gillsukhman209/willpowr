@@ -93,10 +93,10 @@ struct MinimalistHabitDetailView: View {
             )
             
             statCard(
-                title: "Success Rate",
-                value: "\(Int(calculateSuccessRate()))%",
-                icon: "chart.line.uptrend.xyaxis",
-                color: DesignTokens.Colors.electricBlue
+                title: "Current Streak",
+                value: habit.streak == 1 ? "1 day" : "\(habit.streak) days",
+                icon: "flame.fill",
+                color: habit.streak > 0 ? .orange : Color.gray
             )
         }
     }
