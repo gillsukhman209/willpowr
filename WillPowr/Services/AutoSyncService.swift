@@ -70,10 +70,17 @@ final class AutoSyncService: ObservableObject {
         
         // Listen for immediate sync requests (when new automatic habits are added)
         NotificationCenter.default.publisher(for: .immediateSync)
-            .sink { [weak self] _ in
+            .sink { [weak self] notification in
                 Task { @MainActor in
                     print("🔄 Immediate sync requested - syncing now")
-                    await self?.syncAllHabits()
+                    
+                    // Check if this is for a specific new habit
+                    if let newHabit = notification.userInfo?["newHabit"] as? Habit {
+                        print("🆕 Syncing for new automatic habit: \(newHabit.name)")
+                        await self?.syncSpecificHabit(newHabit)
+                    } else {
+                        await self?.syncAllHabits()
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -125,6 +132,45 @@ final class AutoSyncService: ObservableObject {
     }
     
     // MARK: - Sync Methods
+    
+    /// Sync data for a specific habit (useful for newly created automatic habits)
+    func syncSpecificHabit(_ habit: Habit) async {
+        let startTime = Date()
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm:ss"
+        
+        print("🔵 [FOREGROUND] ========== SYNCING SPECIFIC HABIT: \(habit.name) ==========")
+        print("🔵 [FOREGROUND] HealthKit authorized: \(healthKitService.isAuthorized)")
+        print("🔵 [FOREGROUND] Start time: \(timeFormatter.string(from: startTime))")
+        
+        guard healthKitService.isAuthorized else {
+            print("🔴 [FOREGROUND] ⚠️ HealthKit not authorized - cannot sync habit: \(habit.name)")
+            print("🔴 [FOREGROUND] ℹ️ User needs to grant HealthKit permissions in Settings > Health > Data Access & Devices > WillPowr")
+            habitService.updateSyncStatus(.failed(NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not authorized"])))
+            return
+        }
+        
+        guard habit.trackingMode == .automatic else {
+            print("🔴 [FOREGROUND] ⚠️ Habit \(habit.name) is not set to automatic tracking")
+            return
+        }
+        
+        habitService.updateSyncStatus(.syncing)
+        
+        let success = await syncHabit(habit)
+        let elapsed = Date().timeIntervalSince(startTime)
+        
+        if success {
+            print("🔵 [FOREGROUND] ✅ Successfully synced habit: \(habit.name) in \(String(format: "%.2f", elapsed))s")
+            habitService.updateSyncStatus(.completed)
+        } else {
+            print("🔵 [FOREGROUND] ❌ Failed to sync habit: \(habit.name) after \(String(format: "%.2f", elapsed))s")
+            habitService.updateSyncStatus(.failed(NSError(domain: "Sync", code: -1, userInfo: [NSLocalizedDescriptionKey: "Sync failed"])))
+        }
+        
+        lastSyncTime = Date()
+        print("🔵 [FOREGROUND] ========== SPECIFIC HABIT SYNC COMPLETED ==========")
+    }
     
     func syncAllHabits() async {
         let startTime = Date()
@@ -237,10 +283,16 @@ final class AutoSyncService: ObservableObject {
             
             habit.currentProgress = progressValue
             
+            // Always create/update history entry for today's progress
+            habitService.createOrUpdateHistoryEntry(for: habit, on: habitService.dateManager.currentDate)
+            
             // Check if goal was just completed
             if progressValue >= habit.goalTarget && !habit.isCompleted {
                 habitService.completeHabit(habit)
                 print("🎉 \(habit.name) goal completed automatically!")
+            } else {
+                // Even if not completed, ensure streak is recalculated from updated entries
+                habitService.recalculateStreak(for: habit)
             }
             
             print("🔄 Updated \(habit.name): \(Int(previousProgress)) → \(Int(habit.currentProgress))")

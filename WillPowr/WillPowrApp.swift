@@ -117,9 +117,15 @@ struct WillPowrApp: App {
                 }
             }
             .task {
+                // Set DateManager for HealthKitService
+                healthKitService.setDateManager(dateManager)
+                
                 // Create HabitService on MainActor
                 let service = HabitService(modelContext: modelContainer.mainContext, dateManager: dateManager)
                 habitService = service
+                
+                // Validate and repair all streaks on startup (NEW SYSTEM)
+                service.validateAndRepairAllStreaks()
                 
                 // Create AutoSyncService after HabitService is available
                 let syncService = AutoSyncService(

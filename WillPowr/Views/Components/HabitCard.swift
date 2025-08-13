@@ -61,6 +61,10 @@ struct HabitCard: View {
                 // Bottom stats
                 bottomStats
                 
+                // Compact activity grid
+                CompactHabitGrid(habit: habit, daysToShow: 90)
+                    .padding(.top, 8)
+                
                 // Action buttons (only if needed)
                 if shouldShowActionButtons {
                     actionButtons

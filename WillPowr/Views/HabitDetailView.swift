@@ -39,6 +39,9 @@ struct HabitDetailView: View {
                             // Stats Section
                             statsSection
                             
+                            // Activity Grid Section
+                            activityGridSection
+                            
                             // Progress Section (if applicable)
                             if habit.goalUnit != .none {
                                 progressSection
@@ -280,6 +283,25 @@ struct HabitDetailView: View {
                             .stroke(.white.opacity(0.1), lineWidth: 1)
                     )
             )
+        }
+    }
+    
+    // MARK: - Activity Grid Section
+    
+    private var activityGridSection: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Text("Activity History")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
+                Spacer()
+                
+                Text("Last 90 days")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.white.opacity(0.5))
+            }
+            
+            HabitContributionGrid(habit: habit, daysToShow: 90)
         }
     }
     

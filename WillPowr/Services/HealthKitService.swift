@@ -5,10 +5,19 @@ import SwiftUI
 @MainActor
 final class HealthKitService: ObservableObject {
     private let healthStore = HKHealthStore()
+    private var dateManager: DateManager?
     
     @Published var isAuthorized = false
     @Published var authorizationStatus: HKAuthorizationStatus = .notDetermined
     @Published var error: Error?
+    
+    init(dateManager: DateManager? = nil) {
+        self.dateManager = dateManager
+    }
+    
+    func setDateManager(_ dateManager: DateManager) {
+        self.dateManager = dateManager
+    }
     
     // MARK: - Health Data Types We Need
     
@@ -93,7 +102,7 @@ final class HealthKitService: ObservableObject {
         
         do {
             // Try to fetch today's steps to test read access
-            let steps = try await getStepsForDate(Date())
+            let steps = try await getStepsForDate(dateManager?.currentDate ?? Date())
             print("🏥 Read access test successful - fetched \(Int(steps)) steps")
             
             DispatchQueue.main.async {
@@ -152,7 +161,7 @@ final class HealthKitService: ObservableObject {
         
         // Try to verify read access, but don't fail if it doesn't work immediately
         do {
-            let steps = try await getStepsForDate(Date())
+            let steps = try await getStepsForDate(dateManager?.currentDate ?? Date())
             print("🏥 Permission verification: Successfully read \(Int(steps)) steps")
         } catch {
             print("🏥 Permission verification failed (but continuing): \(error.localizedDescription)")
@@ -176,44 +185,45 @@ final class HealthKitService: ObservableObject {
     
     // MARK: - Data Fetching Methods
     
-    func fetchAllHealthData(for date: Date = Date()) async {
-        print("🏥 === FETCHING ALL HEALTH DATA FOR \(DateFormatter.mediumDate.string(from: date)) ===")
+    func fetchAllHealthData(for date: Date? = nil) async {
+        let targetDate = date ?? dateManager?.currentDate ?? Date()
+        print("🏥 === FETCHING ALL HEALTH DATA FOR \(DateFormatter.mediumDate.string(from: targetDate)) ===")
         
         do {
             // Steps
-            let steps = try await getStepsForDate(date)
+            let steps = try await getStepsForDate(targetDate)
             print("🚶‍♂️ Steps: \(Int(steps))")
             
             // Exercise Minutes
-            let exerciseMinutes = try await getExerciseMinutesForDate(date)
+            let exerciseMinutes = try await getExerciseMinutesForDate(targetDate)
             print("💪 Exercise Minutes: \(Int(exerciseMinutes))")
             
             // Active Energy
-            let activeEnergy = try await getActiveEnergyForDate(date)
+            let activeEnergy = try await getActiveEnergyForDate(targetDate)
             print("🔥 Active Energy: \(Int(activeEnergy)) calories")
             
             // Walking/Running Distance
-            let distance = try await getWalkingDistanceForDate(date)
+            let distance = try await getWalkingDistanceForDate(targetDate)
             print("📏 Walking Distance: \(String(format: "%.2f", distance)) km")
             
             // Heart Rate (average for the day)
-            let avgHeartRate = try await getAverageHeartRateForDate(date)
+            let avgHeartRate = try await getAverageHeartRateForDate(targetDate)
             print("❤️ Average Heart Rate: \(Int(avgHeartRate)) bpm")
             
             // Flights Climbed
-            let flights = try await getFlightsClimbedForDate(date)
+            let flights = try await getFlightsClimbedForDate(targetDate)
             print("🪜 Flights Climbed: \(Int(flights))")
             
             // Sleep Hours
-            let sleepHours = try await getSleepHoursForDate(date)
+            let sleepHours = try await getSleepHoursForDate(targetDate)
             print("😴 Sleep Hours: \(String(format: "%.1f", sleepHours)) hours")
             
             // Mindfulness Minutes
-            let mindfulnessMinutes = try await getMindfulnessMinutesForDate(date)
+            let mindfulnessMinutes = try await getMindfulnessMinutesForDate(targetDate)
             print("🧘‍♀️ Mindfulness Minutes: \(Int(mindfulnessMinutes))")
             
             // Recent Workouts
-            let workouts = try await getWorkoutsForDate(date)
+            let workouts = try await getWorkoutsForDate(targetDate)
             print("🏋️‍♀️ Workouts Today: \(workouts.count)")
             for workout in workouts {
                 let duration = Int(workout.duration / 60) // Convert to minutes

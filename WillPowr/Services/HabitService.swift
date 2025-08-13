@@ -6,7 +6,7 @@ import Combine // Added for Combine publishers
 @MainActor
 final class HabitService: ObservableObject {
     private let modelContext: ModelContext
-    private let dateManager: DateManager
+    let dateManager: DateManager
     
     @Published var habits: [Habit] = []
     @Published var isLoading = false
@@ -137,7 +137,9 @@ final class HabitService: ObservableObject {
             // If this is an automatic tracking habit, trigger immediate sync
             if trackingMode == .automatic {
                 print("🔄 New automatic habit added - triggering immediate sync")
-                triggerImmediateSync()
+                Task {
+                    await syncNewAutomaticHabit(habit)
+                }
             }
         } catch {
             print("❌ Error saving habit: \(error)")
@@ -150,6 +152,30 @@ final class HabitService: ObservableObject {
     private func triggerImmediateSync() {
         // Post notification to trigger sync
         NotificationCenter.default.post(name: .immediateSync, object: nil)
+    }
+    
+    /// Immediately sync data for a specific automatic habit that was just created
+    func syncNewAutomaticHabit(_ habit: Habit) async {
+        guard habit.trackingMode == .automatic else {
+            print("⚠️ Cannot sync non-automatic habit: \(habit.name)")
+            return
+        }
+        
+        print("🔄 Syncing data for new automatic habit: \(habit.name)")
+        
+        // Post notification for immediate sync with specific habit context
+        NotificationCenter.default.post(
+            name: .immediateSync, 
+            object: nil, 
+            userInfo: ["newHabit": habit]
+        )
+        
+        // Wait a moment for the sync to attempt, then check if we need to show a helpful message
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            if self.syncStatus == .failed(NSError(domain: "HealthKit", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not authorized"])) {
+                print("💡 [HINT] To enable automatic tracking for '\(habit.name)', grant HealthKit permissions in Settings > Health > Data Access & Devices > WillPowr")
+            }
+        }
     }
     
     func addPresetHabit(_ preset: PresetHabit) {
@@ -205,10 +231,20 @@ final class HabitService: ObservableObject {
     func addProgressToHabit(_ habit: Habit, progress: Double) {
         print("📊 Adding progress to habit: \(habit.name), progress: \(progress)")
         
-        // Reset progress if it's a new day
+        // CRITICAL FIX: Save existing progress to history before resetting for new day
         if let lastCompletion = habit.lastCompletionDate,
            !Calendar.current.isDate(lastCompletion, inSameDayAs: dateManager.currentDate) {
+            
+            // Save previous day's progress to history before resetting
+            if habit.currentProgress > 0 {
+                let lastCompletionDay = Calendar.current.startOfDay(for: lastCompletion)
+                print("📊 \(habit.name): Saving previous day's progress (\(habit.currentProgress)) to history for \(formatDate(lastCompletionDay))")
+                createOrUpdateHistoryEntry(for: habit, on: lastCompletionDay)
+            }
+            
+            // Now reset for the new day
             habit.currentProgress = 0
+            print("📊 \(habit.name): Reset progress for new day")
         }
         
         // Handle quit habits differently
@@ -233,7 +269,7 @@ final class HabitService: ObservableObject {
             print("📊 Progress added but goal not yet reached: \(habit.currentProgress)/\(habit.goalTarget)")
         }
         
-        // Create or update history entry for progress tracking
+        // Always create or update history entry for current day's progress tracking
         createOrUpdateHistoryEntry(for: habit, on: dateManager.currentDate)
         
         saveContext()
@@ -257,44 +293,19 @@ final class HabitService: ObservableObject {
             return
         }
         
-        // Update streak logic
-        if let lastCompletion = habit.lastCompletionDate {
-            let daysBetween = calendar.dateComponents([.day], from: lastCompletion, to: today).day ?? 0
-            print("   Days between last completion and today: \(daysBetween)")
-            
-            if daysBetween == 1 {
-                // Consecutive day - increment streak
-                habit.streak += 1
-                print("   ✅ Consecutive day! New streak: \(habit.streak)")
-            } else if daysBetween > 1 {
-                // Missed days - reset streak to 1
-                habit.streak = 1
-                print("   🔄 Missed days, streak reset to: \(habit.streak)")
-            } else {
-                // Same day completion (shouldn't happen due to check above)
-                print("   ⚠️ Same day completion detected")
-                return
-            }
-        } else {
-            // First completion
-            habit.streak = 1
-            print("   🎉 First completion! Streak set to: \(habit.streak)")
-        }
+        // REPLACED: Old increment/decrement logic with source-of-truth calculation
         
         // Mark as completed
         habit.isCompleted = true
         habit.lastCompletionDate = today
         
-        // Update longest streak if we've achieved a new record
-        if habit.streak > habit.longestStreak {
-            habit.longestStreak = habit.streak
-            print("🏆 NEW RECORD! Longest streak updated to: \(habit.longestStreak)")
-        }
+        // Create history entry for this completion FIRST
+        createOrUpdateHistoryEntry(for: habit, on: today)
+        
+        // NEW SYSTEM: Recalculate streak from entries (source of truth)
+        recalculateStreak(for: habit)
         
         print("✅ Habit marked complete: \(habit.name), Final streak: \(habit.streak), Longest ever: \(habit.longestStreak)")
-        
-        // Create history entry for this completion
-        createOrUpdateHistoryEntry(for: habit, on: today)
         
         saveContext()
         
@@ -365,40 +376,17 @@ final class HabitService: ObservableObject {
             print("   ✅ Limit habit: Under limit (\(habit.currentProgress)/\(habit.goalTarget))")
         }
         
-        // Update streak logic for quit habits - ONLY count consecutive explicit successes
-        if let lastSuccess = habit.lastCompletionDate {
-            let daysBetween = calendar.dateComponents([.day], from: lastSuccess, to: today).day ?? 0
-            print("   Days between last success and today: \(daysBetween)")
-            
-            if daysBetween == 1 {
-                // Consecutive successful day - increment streak
-                habit.streak += 1
-                print("   ✅ Consecutive success! New streak: \(habit.streak)")
-            } else {
-                // Gap in successes - reset streak to 1 (only today counts)
-                habit.streak = 1
-                print("   🔄 Gap detected - streak reset to: \(habit.streak)")
-            }
-        } else {
-            // First success ever
-            habit.streak = 1
-            print("   🎉 First quit habit success! Streak set to: \(habit.streak)")
-        }
-        
         // Mark as successful
         habit.isCompleted = true
         habit.lastCompletionDate = today
         
-        // Update longest streak if we've achieved a new record
-        if habit.streak > habit.longestStreak {
-            habit.longestStreak = habit.streak
-            print("🏆 NEW QUIT HABIT RECORD! Longest streak updated to: \(habit.longestStreak)")
-        }
+        // Create history entry for this success FIRST
+        createOrUpdateHistoryEntry(for: habit, on: today)
+        
+        // NEW SYSTEM: Recalculate streak from entries (source of truth)
+        recalculateStreak(for: habit)
         
         print("✅ Quit habit marked successful: \(habit.name), Final streak: \(habit.streak), Longest ever: \(habit.longestStreak)")
-        
-        // Create history entry for this success
-        createOrUpdateHistoryEntry(for: habit, on: today)
         
         saveContext()
         
@@ -428,27 +416,28 @@ final class HabitService: ObservableObject {
         // Handle different quit habit types
         if habit.isAbstinenceHabit {
             // For abstinence habits, any failure resets everything
-            habit.streak = 0
             habit.currentProgress = 1 // Mark that there was some activity
             habit.isCompleted = false
-            print("   🚫 Abstinence habit failed: Streak reset to 0, marked as relapsed")
+            print("   🚫 Abstinence habit failed: marked as relapsed")
         } else if habit.isLimitHabit {
             // For limit habits, failure means exceeding the limit
             if habit.currentProgress <= habit.goalTarget {
                 // If currently under limit, mark as over limit
                 habit.currentProgress = habit.goalTarget + 1
             }
-            habit.streak = 0
             habit.isCompleted = false
-            print("   📊 Limit habit failed: Over limit (\(habit.currentProgress)/\(habit.goalTarget)), streak reset")
+            print("   📊 Limit habit failed: Over limit (\(habit.currentProgress)/\(habit.goalTarget))")
         }
         
         // Don't set lastCompletionDate for failures - only track successful completions
         
-        print("❌ Habit failed: \(habit.name), Streak reset to: 0")
-        
-        // Create history entry for this failure
+        // Create history entry for this failure FIRST
         createOrUpdateHistoryEntry(for: habit, on: today)
+        
+        // NEW SYSTEM: Recalculate streak from entries (will be 0 due to failure)
+        recalculateStreak(for: habit)
+        
+        print("❌ Habit failed: \(habit.name), Final streak: \(habit.streak)")
         
         saveContext()
         
@@ -461,11 +450,15 @@ final class HabitService: ObservableObject {
         print("   Current streak: \(habit.streak) → 0")
         print("   Longest streak remains: \(habit.longestStreak)")
         
-        habit.streak = 0
+        // Reset current state
         habit.currentProgress = 0
         habit.isCompleted = false
         habit.lastCompletionDate = nil
+        
+        // NEW SYSTEM: Manually set streak to 0 (this is an explicit user action)
+        habit.streak = 0
         // Note: longestStreak is intentionally NOT reset - it's a historical record
+        // Note: We don't recalculate from entries here because this is a manual reset
         
         saveContext()
     }
@@ -497,6 +490,46 @@ final class HabitService: ObservableObject {
         return !trimmed.isEmpty && trimmed.count <= 50
     }
     
+    // MARK: - Streak Management (New System)
+    
+    /// Recalculate and update streak for a habit using the new source-of-truth approach
+    func recalculateStreak(for habit: Habit) {
+        print("🧮 Recalculating streak for \(habit.name)")
+        
+        let oldCurrent = habit.streak
+        let oldLongest = habit.longestStreak
+        
+        // Calculate new streaks from entries
+        habit.streak = StreakCalculator.calculateCurrentStreak(from: habit.sortedEntries, habitType: habit.habitType)
+        habit.longestStreak = StreakCalculator.calculateLongestStreak(from: habit.sortedEntries, habitType: habit.habitType)
+        
+        if oldCurrent != habit.streak || oldLongest != habit.longestStreak {
+            print("🔄 Streak updated for \(habit.name):")
+            print("   Current: \(oldCurrent) → \(habit.streak)")
+            print("   Longest: \(oldLongest) → \(habit.longestStreak)")
+        }
+    }
+    
+    /// Validate and repair all habit streaks on app launch
+    func validateAndRepairAllStreaks() {
+        print("🔍 Validating all habit streaks...")
+        var repairedCount = 0
+        
+        for habit in habits {
+            if !StreakCalculator.validateStreak(habit: habit) {
+                StreakCalculator.repairStreak(habit: habit)
+                repairedCount += 1
+            }
+        }
+        
+        if repairedCount > 0 {
+            print("🔧 Repaired streaks for \(repairedCount) habits")
+            saveContext()
+        } else {
+            print("✅ All streaks are valid")
+        }
+    }
+
     // MARK: - Private Methods
     
     private func saveContext() {
@@ -547,11 +580,13 @@ final class HabitService: ObservableObject {
             let daysBetween = calendar.dateComponents([.day], from: lastCompletion, to: today).day ?? 0
             
             if daysBetween > 1 {
-                // Missed days - reset streak and progress
-                habit.streak = 0
+                // Missed days - reset progress and recalculate streak
                 habit.currentProgress = 0
                 habit.isCompleted = false
-                print("📅 Reset streak for \(habit.name) due to missed days")
+                print("📅 Reset progress for \(habit.name) due to missed days")
+                
+                // NEW SYSTEM: Recalculate streak from entries
+                recalculateStreak(for: habit)
             } else if daysBetween == 1 {
                 // New day - reset daily progress but keep streak
                 habit.currentProgress = 0
@@ -573,7 +608,44 @@ final class HabitService: ObservableObject {
             let wasCompleted = habit.isCompleted
             let previousProgress = habit.currentProgress
             
-            // Reset daily progress for the current date
+            // CRITICAL FIX: Check if this is a date transition and we need to save previous day's progress
+            var needsHistoryForPreviousDay = false
+            var previousDayDate: Date?
+            
+            if let lastCompletion = habit.lastCompletionDate {
+                let currentDate = dateManager.currentDate
+                let lastCompletionDay = Calendar.current.startOfDay(for: lastCompletion)
+                let currentDay = Calendar.current.startOfDay(for: currentDate)
+                
+                // If last completion was on a different day than current date, we need to check if there's unsaved progress
+                if !Calendar.current.isDate(lastCompletion, inSameDayAs: currentDate) {
+                    // Check if we have progress that hasn't been saved to history for the last completion day
+                    if previousProgress > 0 {
+                        needsHistoryForPreviousDay = true
+                        previousDayDate = lastCompletionDay
+                        print("   📝 \(habit.name): Detected unsaved progress (\(previousProgress)) from previous day - saving to history")
+                    }
+                }
+            } else if previousProgress > 0 {
+                // No last completion but we have progress - this might be orphaned progress from a previous day
+                // Save it to yesterday (best guess)
+                needsHistoryForPreviousDay = true
+                previousDayDate = Calendar.current.date(byAdding: .day, value: -1, to: dateManager.currentDate)
+                print("   📝 \(habit.name): Detected orphaned progress (\(previousProgress)) - saving to previous day")
+            }
+            
+            // Save previous day's progress to history before resetting
+            if needsHistoryForPreviousDay, let prevDate = previousDayDate {
+                // Temporarily store current values
+                let tempProgress = habit.currentProgress
+                let tempCompleted = habit.isCompleted
+                
+                // Create history entry for previous day with the existing progress
+                createOrUpdateHistoryEntry(for: habit, on: prevDate)
+                print("   💾 \(habit.name): Saved \(tempProgress) progress to history for \(formatDate(prevDate))")
+            }
+            
+            // Now refresh state for the current date
             if let lastCompletion = habit.lastCompletionDate,
                Calendar.current.isDate(lastCompletion, inSameDayAs: dateManager.currentDate) {
                 // Habit was completed on this date - mark as completed
@@ -638,9 +710,11 @@ final class HabitService: ObservableObject {
             // For abstinence habits, any progress means failure
             habit.currentProgress += progress
             if habit.currentProgress > 0 {
-                habit.streak = 0
                 habit.isCompleted = false
-                print("   🚫 Abstinence habit: Any progress means failure - streak reset")
+                print("   🚫 Abstinence habit: Any progress means failure")
+                // Create failure entry and recalculate streak
+                createOrUpdateHistoryEntry(for: habit, on: dateManager.currentDate)
+                recalculateStreak(for: habit)
             }
         } else if habit.isLimitHabit {
             // For limit habits, add progress and check against limit
@@ -648,9 +722,11 @@ final class HabitService: ObservableObject {
             
             if habit.currentProgress > habit.goalTarget {
                 // Exceeded limit - this is a failure
-                habit.streak = 0
                 habit.isCompleted = false
                 print("   📊 Limit exceeded: \(habit.currentProgress)/\(habit.goalTarget) - habit failed")
+                // Create failure entry and recalculate streak
+                createOrUpdateHistoryEntry(for: habit, on: dateManager.currentDate)
+                recalculateStreak(for: habit)
             } else {
                 // Still under limit - this is okay
                 habit.isCompleted = false // Will be marked complete when explicitly confirmed
@@ -663,26 +739,60 @@ final class HabitService: ObservableObject {
     
     // MARK: - History Management
     
-    private func createOrUpdateHistoryEntry(for habit: Habit, on date: Date) {
-        let today = Calendar.current.startOfDay(for: date)
+    func createOrUpdateHistoryEntry(for habit: Habit, on date: Date) {
+        let targetDate = Calendar.current.startOfDay(for: date)
         
         // Check if an entry already exists for this date
-        if let existingEntry = habit.entryFor(date: today) {
-            // Update existing entry
+        if let existingEntry = habit.entryFor(date: targetDate) {
+            // Update existing entry with current habit state
             existingEntry.progress = habit.currentProgress
             existingEntry.isCompleted = habit.isCompleted
             existingEntry.goalTarget = habit.goalTarget
             existingEntry.goalUnit = habit.goalUnit
             existingEntry.habitType = habit.habitType
             existingEntry.quitHabitType = habit.quitHabitType
-            print("📝 Updated history entry for \(habit.name) on \(formatDate(today)): \(habit.currentProgress)")
+            print("📝 Updated history entry for \(habit.name) on \(formatDate(targetDate)): \(habit.currentProgress)")
         } else {
-            // Create new entry
-            let entry = HabitEntry.createEntry(from: habit, on: today)
+            // Create new entry from current habit state
+            let entry = HabitEntry.createEntry(from: habit, on: targetDate)
             entry.habit = habit
             habit.entries.append(entry)
             modelContext.insert(entry)
-            print("📝 Created new history entry for \(habit.name) on \(formatDate(today)): \(habit.currentProgress)")
+            print("📝 Created new history entry for \(habit.name) on \(formatDate(targetDate)): \(habit.currentProgress)")
+        }
+    }
+    
+    // MARK: - Enhanced History Creation (for specific progress values)
+    
+    private func createOrUpdateHistoryEntry(for habit: Habit, on date: Date, withProgress progress: Double, completed isCompleted: Bool) {
+        let targetDate = Calendar.current.startOfDay(for: date)
+        
+        // Check if an entry already exists for this date
+        if let existingEntry = habit.entryFor(date: targetDate) {
+            // Update existing entry with specific values
+            existingEntry.progress = progress
+            existingEntry.isCompleted = isCompleted
+            existingEntry.goalTarget = habit.goalTarget
+            existingEntry.goalUnit = habit.goalUnit
+            existingEntry.habitType = habit.habitType
+            existingEntry.quitHabitType = habit.quitHabitType
+            print("📝 Updated history entry for \(habit.name) on \(formatDate(targetDate)): \(progress) (specific values)")
+        } else {
+            // Create new entry with specific values
+            let entry = HabitEntry(
+                habitId: habit.id,
+                date: targetDate,
+                progress: progress,
+                goalTarget: habit.goalTarget,
+                goalUnit: habit.goalUnit,
+                habitType: habit.habitType,
+                quitHabitType: habit.quitHabitType,
+                isCompleted: isCompleted
+            )
+            entry.habit = habit
+            habit.entries.append(entry)
+            modelContext.insert(entry)
+            print("📝 Created new history entry for \(habit.name) on \(formatDate(targetDate)): \(progress) (specific values)")
         }
     }
     
@@ -720,10 +830,22 @@ final class HabitService: ObservableObject {
     }
     
     func updateHabitProgress(_ habit: Habit, progress: Double, fromBackground: Bool = false) {
-        // Reset progress if it's a new day
+        // CRITICAL FIX: Save existing progress to history before resetting for new day
         if let lastCompletion = habit.lastCompletionDate,
            !Calendar.current.isDate(lastCompletion, inSameDayAs: dateManager.currentDate) {
+            
+            // Save previous day's progress to history before resetting
+            if habit.currentProgress > 0 {
+                let lastCompletionDay = Calendar.current.startOfDay(for: lastCompletion)
+                let wasCompleted = habit.currentProgress >= habit.goalTarget
+                print("📊 \(habit.name): Saving previous day's progress (\(habit.currentProgress)) to history for \(formatDate(lastCompletionDay))")
+                createOrUpdateHistoryEntry(for: habit, on: lastCompletionDay, withProgress: habit.currentProgress, completed: wasCompleted)
+            }
+            
+            // Reset progress for new day
             habit.currentProgress = 0
+            habit.isCompleted = false
+            print("📊 \(habit.name): Reset progress for new day (background: \(fromBackground))")
         }
         
         let previousProgress = habit.currentProgress
@@ -737,7 +859,7 @@ final class HabitService: ObservableObject {
             completeHabit(habit)
         }
         
-        // Create or update history entry
+        // Always create or update history entry for current day
         createOrUpdateHistoryEntry(for: habit, on: dateManager.currentDate)
         
         // Only save if not from background (background sync will save in batch)

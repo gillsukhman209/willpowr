@@ -11,6 +11,7 @@ struct MinimalistDashboardView: View {
     @State private var selectedHabit: Habit?
     @State private var scrollOffset: CGFloat = 0
     @State private var showMotivation = true
+    @State private var showDebugPanel = false
     
     // Animation states
     @State private var titleOpacity: Double = 0
@@ -84,6 +85,20 @@ struct MinimalistDashboardView: View {
                     .padding(.bottom, DesignTokens.Spacing.xlarge)
                 }
             }
+            
+            // Debug Panel Overlay
+            if showDebugPanel {
+                VStack {
+                    Spacer()
+                    DebugHistoryPanel()
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: -5)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .frame(maxHeight: UIScreen.main.bounds.height * 0.75)
+                }
+                .ignoresSafeArea(edges: .bottom)
+            }
         }
         .sheet(isPresented: $showingAddHabit) {
             MinimalistAddHabitView()
@@ -104,7 +119,7 @@ struct MinimalistDashboardView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.medium) {
-            // Date and sync status
+            // Date, sync status, and debug toggle
             HStack {
                 Text(currentDateString.uppercased())
                     .micro()
@@ -113,7 +128,21 @@ struct MinimalistDashboardView: View {
                 
                 Spacer()
                 
-                SyncStatusView()
+                HStack(spacing: 12) {
+                    SyncStatusView()
+                    
+                    // Debug Panel Toggle
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showDebugPanel.toggle()
+                        }
+                    }) {
+                        Image(systemName: showDebugPanel ? "eye.fill" : "eye")
+                            .font(.caption)
+                            .foregroundColor(showDebugPanel ? .orange : .secondary)
+                            .frame(width: 20, height: 20)
+                    }
+                }
             }
             
             // Giant title
