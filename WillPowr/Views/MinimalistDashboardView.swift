@@ -353,12 +353,10 @@ struct MinimalistHabitRow: View {
                 
                 Spacer()
                 
-                // Action indicator
-                if !habit.isCompleted && habit.habitType == .build {
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(DesignTokens.Colors.offWhite.opacity(0.3))
-                }
+                // Action indicator - always show to indicate row is clickable
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(DesignTokens.Colors.offWhite.opacity(0.3))
             }
             .padding(.horizontal, DesignTokens.Spacing.large)
             .padding(.vertical, DesignTokens.Spacing.large)
