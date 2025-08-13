@@ -377,10 +377,12 @@ extension PresetHabit {
         PresetHabit(name: "Avoid Gambling", iconName: "dice.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid gambling", defaultQuitHabitType: .abstinence),
         PresetHabit(name: "Stop Nail Biting", iconName: "hand.raised.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid nail biting", defaultQuitHabitType: .abstinence),
         
+        // Simple abstinence-based quit habits
+        PresetHabit(name: "Quit Social Media", iconName: "iphone.slash", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid social media", defaultQuitHabitType: .abstinence),
+        PresetHabit(name: "Quit Coffee", iconName: "cup.and.saucer.fill", habitType: .quit, defaultGoalTarget: 0, defaultGoalUnit: .none, goalDescription: "Completely avoid coffee", defaultQuitHabitType: .abstinence),
+        
         // Limit-based quit habits (daily limits)
-        PresetHabit(name: "Limit Social Media", iconName: "iphone.slash", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .hours, goalDescription: "Limit social media to 1 hour daily", defaultQuitHabitType: .limit),
         PresetHabit(name: "Limit Screen Time", iconName: "tv.fill", habitType: .quit, defaultGoalTarget: 6, defaultGoalUnit: .hours, goalDescription: "Limit screen time to 6 hours daily", defaultQuitHabitType: .limit),
-        PresetHabit(name: "Limit Coffee", iconName: "cup.and.saucer.fill", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .count, goalDescription: "Limit coffee to 1 cup daily", defaultQuitHabitType: .limit),
         PresetHabit(name: "Limit Junk Food", iconName: "takeoutbag.and.cup.and.straw.fill", habitType: .quit, defaultGoalTarget: 1, defaultGoalUnit: .count, goalDescription: "Limit junk food to 1 serving daily", defaultQuitHabitType: .limit),
         PresetHabit(name: "Limit Sugar Intake", iconName: "cube.fill", habitType: .quit, defaultGoalTarget: 25, defaultGoalUnit: .grams, goalDescription: "Limit sugar to 25g daily", defaultQuitHabitType: .limit)
     ]
