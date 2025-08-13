@@ -126,6 +126,9 @@ struct WillPowrApp: App {
                 let service = HabitService(modelContext: modelContainer.mainContext, dateManager: dateManager)
                 habitService = service
                 
+                // Connect services for notification updates
+                service.setNotificationService(notificationService)
+                
                 // Validate and repair all streaks on startup (NEW SYSTEM)
                 service.validateAndRepairAllStreaks()
                 

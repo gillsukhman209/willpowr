@@ -7,6 +7,7 @@ import Combine // Added for Combine publishers
 final class HabitService: ObservableObject {
     private let modelContext: ModelContext
     let dateManager: DateManager
+    private weak var notificationService: NotificationService?
     
     @Published var habits: [Habit] = []
     @Published var isLoading = false
@@ -52,6 +53,18 @@ final class HabitService: ObservableObject {
     }
     
     private var cancellables = Set<AnyCancellable>()
+    
+    // MARK: - Notification Service Integration
+    
+    func setNotificationService(_ service: NotificationService) {
+        notificationService = service
+    }
+    
+    private func updateNotifications() {
+        guard let notificationService = notificationService else { return }
+        // Use debounced updates to prevent excessive notifications
+        notificationService.updateNotificationsForHabitChange(self)
+    }
     
     // MARK: - Habit Management
     
@@ -145,6 +158,9 @@ final class HabitService: ObservableObject {
             print("❌ Error saving habit: \(error)")
             self.error = .savingFailed(error.localizedDescription)
         }
+        
+        // Update notifications for the new habit
+        updateNotifications()
     }
     
     // MARK: - Immediate Sync Trigger
@@ -204,6 +220,9 @@ final class HabitService: ObservableObject {
         
         print("🗑️ Habits after delete: \(habits.count)")
         print("🗑️ Remaining habits: \(habits.map { $0.name })")
+        
+        // Update notifications after deleting habit
+        updateNotifications()
     }
     
     func updateHabit(_ habit: Habit) {
@@ -274,6 +293,9 @@ final class HabitService: ObservableObject {
         
         saveContext()
         
+        // Update notifications after progress change
+        updateNotifications()
+        
         // Trigger UI update
         objectWillChange.send()
     }
@@ -308,6 +330,9 @@ final class HabitService: ObservableObject {
         print("✅ Habit marked complete: \(habit.name), Final streak: \(habit.streak), Longest ever: \(habit.longestStreak)")
         
         saveContext()
+        
+        // Update notifications after habit completion
+        updateNotifications()
         
         // Trigger UI update
         objectWillChange.send()
@@ -390,6 +415,9 @@ final class HabitService: ObservableObject {
         
         saveContext()
         
+        // Update notifications after quit habit success
+        updateNotifications()
+        
         // Trigger UI update by refreshing habits
         objectWillChange.send()
     }
@@ -440,6 +468,9 @@ final class HabitService: ObservableObject {
         print("❌ Habit failed: \(habit.name), Final streak: \(habit.streak)")
         
         saveContext()
+        
+        // Update notifications after habit failure
+        updateNotifications()
         
         // Trigger UI update by refreshing habits
         objectWillChange.send()

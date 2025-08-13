@@ -7,8 +7,12 @@ final class NotificationService: ObservableObject {
     @Published var permissionStatus: UNAuthorizationStatus = .notDetermined
     @Published var hasPermission: Bool = false
     
+    // Ultra-sophisticated scheduler for dynamic notifications
+    private let scheduler = NotificationScheduler()
+    
     init() {
         checkPermissionStatus()
+        setupAppLifecycleObservers()
     }
     
     // MARK: - Permission Management
@@ -116,108 +120,109 @@ final class NotificationService: ObservableObject {
         }
     }
     
-    // MARK: - Smart Habit Reminders
+    // MARK: - App Lifecycle Management
     
-    enum TimeSlot: CaseIterable {
-        case morning, afternoon, evening, night
+    private func setupAppLifecycleObservers() {
+        // Observe app lifecycle events for dynamic rescheduling
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
         
-        var hour: Int {
-            switch self {
-            case .morning: return 9    // 9:00 AM
-            case .afternoon: return 14 // 2:00 PM  
-            case .evening: return 18   // 6:00 PM
-            case .night: return 21     // 9:00 PM
-            }
-        }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
         
-        var displayName: String {
-            switch self {
-            case .morning: return "Morning"
-            case .afternoon: return "Afternoon"
-            case .evening: return "Evening" 
-            case .night: return "Night"
-            }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func appDidBecomeActive() {
+        // Reschedule notifications when app becomes active (handles date changes, etc.)
+        if let habitService = getCurrentHabitService() {
+            scheduler.scheduleNotificationsDebounced(for: habitService, delay: 0.5)
         }
     }
     
+    @objc private func appWillResignActive() {
+        // App about to go to background - final sync
+        if let habitService = getCurrentHabitService() {
+            scheduler.scheduleNotifications(for: habitService)
+        }
+    }
+    
+    @objc private func appDidEnterBackground() {
+        // Schedule background refresh for notifications
+        scheduleBackgroundRefresh()
+    }
+    
+    // Helper to get current HabitService (will be set from app)
+    private weak var currentHabitService: HabitService?
+    
+    func setHabitService(_ habitService: HabitService) {
+        currentHabitService = habitService
+    }
+    
+    private func getCurrentHabitService() -> HabitService? {
+        return currentHabitService
+    }
+    
+    // MARK: - Modern Dynamic Scheduling API
+    
+    /// Schedule dynamic habit reminders that update automatically
     func scheduleHabitReminders(for habitService: HabitService) {
         guard hasPermission else {
             print("❌ Cannot schedule reminders - no notification permission")
             return
         }
         
-        print("📅 Scheduling daily habit reminders...")
+        // Set the habit service for lifecycle management
+        setHabitService(habitService)
         
-        // Clear existing habit reminders
-        clearHabitReminders()
-        
-        // Schedule for each time slot
-        for timeSlot in TimeSlot.allCases {
-            scheduleReminderForTimeSlot(timeSlot, habitService: habitService)
-        }
-        
-        print("✅ Scheduled reminders for all time slots")
+        // Use the sophisticated scheduler
+        scheduler.scheduleNotifications(for: habitService, force: true)
     }
     
-    private func scheduleReminderForTimeSlot(_ timeSlot: TimeSlot, habitService: HabitService) {
-        // Generate smart content based on habits
-        let (title, body) = generateSmartNotificationContent(
-            timeSlot: timeSlot,
-            habitService: habitService
-        )
+    /// Update notifications when habits change (optimized with debouncing)
+    func updateNotificationsForHabitChange(_ habitService: HabitService) {
+        guard hasPermission else { return }
         
-        // Skip scheduling if no content (all habits completed)
-        guard !title.isEmpty && !body.isEmpty else {
-            print("ℹ️ Skipping \(timeSlot.displayName) reminder - no incomplete habits")
-            return
+        // Use debounced scheduling to avoid excessive updates
+        scheduler.scheduleNotificationsDebounced(for: habitService, delay: 2.0)
+    }
+    
+    // MARK: - Background Processing
+    
+    private func scheduleBackgroundRefresh() {
+        // Schedule background app refresh to update notifications
+        // This ensures notifications stay current even when app is backgrounded
+        let identifier = "habit-notification-refresh"
+        
+        let request = UIApplication.shared.beginBackgroundTask(withName: identifier) {
+            // Background task completion
+            print("📱 Background notification refresh completed")
         }
         
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        content.sound = .default
-        content.badge = 1
-        content.categoryIdentifier = "HABIT_REMINDER"
-        content.userInfo = ["timeSlot": timeSlot.displayName]
-        
-        // Create daily repeating trigger
-        var dateComponents = DateComponents()
-        dateComponents.hour = timeSlot.hour
-        dateComponents.minute = 0
-        
-        let trigger = UNCalendarNotificationTrigger(
-            dateMatching: dateComponents,
-            repeats: true
-        )
-        
-        let request = UNNotificationRequest(
-            identifier: "habit-reminder-\(timeSlot.displayName.lowercased())",
-            content: content,
-            trigger: trigger
-        )
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("❌ Error scheduling \(timeSlot.displayName) reminder: \(error)")
+        // Perform minimal background work
+        Task { @MainActor [weak self] in
+            if let habitService = self?.getCurrentHabitService() {
+                self?.scheduler.scheduleNotifications(for: habitService)
+                UIApplication.shared.endBackgroundTask(request)
             } else {
-                print("✅ Scheduled \(timeSlot.displayName) reminder for \(timeSlot.hour):00")
+                UIApplication.shared.endBackgroundTask(request)
             }
         }
     }
     
-    private func generateSmartNotificationContent(timeSlot: TimeSlot, habitService: HabitService) -> (String, String) {
-        let incompleteHabits = getIncompleteHabits(from: habitService)
-        
-        // No incomplete habits - don't send notification
-        guard !incompleteHabits.isEmpty else {
-            return ("", "") // Empty content will prevent notification
-        }
-        
-        let title = generateTitle(for: incompleteHabits, timeSlot: timeSlot)
-        let body = generateBody(for: incompleteHabits, timeSlot: timeSlot)
-        
-        return (title, body)
-    }
     
     private func getIncompleteHabits(from habitService: HabitService) -> [Habit] {
         return habitService.habits.filter { habit in
@@ -226,86 +231,11 @@ final class NotificationService: ObservableObject {
         }
     }
     
-    private func generateTitle(for habits: [Habit], timeSlot: TimeSlot) -> String {
-        if habits.count == 1 {
-            let habit = habits[0]
-            if habit.streak > 0 {
-                return "Don't break your \(habit.streak)-day streak! 🔥"
-            } else {
-                return "Start building your streak! 💪"
-            }
-        } else {
-            switch timeSlot {
-            case .morning:
-                return "Start your day strong! 🌅"
-            case .afternoon:
-                return "Midday momentum check! ⚡"
-            case .evening:
-                return "Keep your streak alive! 🔥"
-            case .night:
-                return "Last chance to succeed! ⏰"
-            }
-        }
-    }
-    
-    private func generateBody(for habits: [Habit], timeSlot: TimeSlot) -> String {
-        if habits.count == 1 {
-            let habit = habits[0]
-            return generateSingleHabitMessage(habit: habit, timeSlot: timeSlot)
-        } else {
-            return generateMultipleHabitsMessage(habits: habits, timeSlot: timeSlot)
-        }
-    }
-    
-    private func generateSingleHabitMessage(habit: Habit, timeSlot: TimeSlot) -> String {
-        let baseMessage: String
-        
-        if habit.streak >= 7 {
-            baseMessage = "Complete \(habit.name) to keep your amazing \(habit.streak)-day streak going"
-        } else if habit.streak > 0 {
-            baseMessage = "Complete \(habit.name) to maintain your \(habit.streak)-day streak"
-        } else {
-            baseMessage = "Time to complete \(habit.name) and start building momentum"
-        }
-        
-        // Add time-specific motivation
-        let timeMotivation = getTimeSpecificMotivation(timeSlot: timeSlot)
-        return "\(baseMessage). \(timeMotivation)"
-    }
-    
-    private func generateMultipleHabitsMessage(habits: [Habit], timeSlot: TimeSlot) -> String {
-        let habitCount = habits.count
-        let habitNames = habits.prefix(3).map { $0.name }.joined(separator: ", ")
-        
-        let baseMessage: String
-        if habitCount <= 3 {
-            baseMessage = "You have \(habitCount) habits waiting: \(habitNames)"
-        } else {
-            let firstThree = habits.prefix(3).map { $0.name }.joined(separator: ", ")
-            baseMessage = "You have \(habitCount) habits waiting: \(firstThree) and \(habitCount - 3) more"
-        }
-        
-        let timeMotivation = getTimeSpecificMotivation(timeSlot: timeSlot)
-        return "\(baseMessage). \(timeMotivation)"
-    }
-    
-    private func getTimeSpecificMotivation(timeSlot: TimeSlot) -> String {
-        switch timeSlot {
-        case .morning:
-            return "Start strong and set the tone for your day!"
-        case .afternoon:
-            return "You've got this - keep the momentum going!"
-        case .evening:
-            return "Don't let today slip away!"
-        case .night:
-            return "Last chance to make today count!"
-        }
-    }
-    
     func clearHabitReminders() {
-        let identifiers = TimeSlot.allCases.map { "habit-reminder-\($0.displayName.lowercased())" }
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
-        print("🧹 Cleared existing habit reminders")
+        // Clear all habit reminder notifications using the scheduler
+        Task {
+            await scheduler.clearAllNotifications()
+        }
     }
     
     /// Send immediate smart notification for testing
@@ -315,29 +245,22 @@ final class NotificationService: ObservableObject {
             return
         }
         
-        let currentHour = Calendar.current.component(.hour, from: Date())
-        let timeSlot: TimeSlot
+        let incompleteHabits = getIncompleteHabits(from: habitService)
         
-        // Determine current time slot
-        switch currentHour {
-        case 0..<12:
-            timeSlot = .morning
-        case 12..<16:
-            timeSlot = .afternoon
-        case 16..<20:
-            timeSlot = .evening
-        default:
-            timeSlot = .night
+        let finalTitle: String
+        let finalBody: String
+        
+        if incompleteHabits.isEmpty {
+            finalTitle = "WillPowr Smart Test 🤖"
+            finalBody = "All your habits are complete! Great job 🎉"
+        } else if incompleteHabits.count == 1 {
+            let habit = incompleteHabits[0]
+            finalTitle = "Don't break your streak! 🔥"
+            finalBody = "Complete \(habit.name) to maintain your progress"
+        } else {
+            finalTitle = "Keep going! ⚡"
+            finalBody = "You have \(incompleteHabits.count) habits waiting for you"
         }
-        
-        let (title, body) = generateSmartNotificationContent(
-            timeSlot: timeSlot,
-            habitService: habitService
-        )
-        
-        // If no incomplete habits, send a different test message
-        let finalTitle = title.isEmpty ? "WillPowr Smart Test 🤖" : title
-        let finalBody = body.isEmpty ? "All your habits are complete! Great job 🎉" : body
         
         let content = UNMutableNotificationContent()
         content.title = finalTitle
