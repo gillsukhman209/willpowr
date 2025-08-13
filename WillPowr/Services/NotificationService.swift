@@ -206,9 +206,9 @@ final class NotificationService: ObservableObject {
     }
     
     private func generateSmartNotificationContent(timeSlot: TimeSlot, habitService: HabitService) -> (String, String) {
-        let incompleteHabits = getIncompleteManualHabits(from: habitService)
+        let incompleteHabits = getIncompleteHabits(from: habitService)
         
-        // No manual habits need attention - don't send notification
+        // No incomplete habits - don't send notification
         guard !incompleteHabits.isEmpty else {
             return ("", "") // Empty content will prevent notification
         }
@@ -219,10 +219,10 @@ final class NotificationService: ObservableObject {
         return (title, body)
     }
     
-    private func getIncompleteManualHabits(from habitService: HabitService) -> [Habit] {
+    private func getIncompleteHabits(from habitService: HabitService) -> [Habit] {
         return habitService.habits.filter { habit in
-            // Only include manual habits that aren't completed today
-            !habit.isCompleted && habit.trackingMode == .manual
+            // Include all habits that aren't completed today (manual and automatic)
+            !habit.isCompleted
         }
     }
     
