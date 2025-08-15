@@ -10,6 +10,7 @@
 		1A9CB52B2E4F859E00EF5A38 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A9CB52A2E4F859E00EF5A38 /* WidgetKit.framework */; };
 		1A9CB52D2E4F859E00EF5A38 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A9CB52C2E4F859E00EF5A38 /* SwiftUI.framework */; };
 		1A9CB53E2E4F859F00EF5A38 /* willpowrwidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1A9CB5282E4F859E00EF5A38 /* willpowrwidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1AD189812E4FE4D3004512C2 /* WillPowr Watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 1AD189802E4FE4D3004512C2 /* WillPowr Watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -19,6 +20,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1A9CB5272E4F859E00EF5A38;
 			remoteInfo = willpowrwidgetExtension;
+		};
+		1AD189822E4FE4D3004512C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A7E1A782E2A2949002ED819 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1AD1897F2E4FE4D3004512C2;
+			remoteInfo = "WillPowr Watch Watch App";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -34,6 +42,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AD1898D2E4FE4D4004512C2 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				1AD189812E4FE4D3004512C2 /* WillPowr Watch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +61,8 @@
 		1A9CB52A2E4F859E00EF5A38 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		1A9CB52C2E4F859E00EF5A38 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		1A9CB5442E4F862D00EF5A38 /* willpowrwidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = willpowrwidgetExtension.entitlements; sourceTree = "<group>"; };
+		1AD1897B2E4FE4D3004512C2 /* WillPowr Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "WillPowr Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AD189802E4FE4D3004512C2 /* WillPowr Watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "WillPowr Watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +109,11 @@
 			path = willpowrwidget;
 			sourceTree = "<group>";
 		};
+		1AD189842E4FE4D3004512C2 /* WillPowr Watch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "WillPowr Watch Watch App";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +133,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AD1897D2E4FE4D3004512C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -116,6 +149,7 @@
 				1A9CB5442E4F862D00EF5A38 /* willpowrwidgetExtension.entitlements */,
 				1A7E1A822E2A2949002ED819 /* WillPowr */,
 				1A9CB52E2E4F859E00EF5A38 /* willpowrwidget */,
+				1AD189842E4FE4D3004512C2 /* WillPowr Watch Watch App */,
 				1A9CB5292E4F859E00EF5A38 /* Frameworks */,
 				1A7E1A812E2A2949002ED819 /* Products */,
 			);
@@ -126,6 +160,8 @@
 			children = (
 				1A7E1A802E2A2949002ED819 /* WillPowr.app */,
 				1A9CB5282E4F859E00EF5A38 /* willpowrwidgetExtension.appex */,
+				1AD1897B2E4FE4D3004512C2 /* WillPowr Watch.app */,
+				1AD189802E4FE4D3004512C2 /* WillPowr Watch Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -188,6 +224,47 @@
 			productReference = 1A9CB5282E4F859E00EF5A38 /* willpowrwidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		1AD1897A2E4FE4D3004512C2 /* WillPowr Watch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AD189912E4FE4D4004512C2 /* Build configuration list for PBXNativeTarget "WillPowr Watch" */;
+			buildPhases = (
+				1AD189792E4FE4D3004512C2 /* Resources */,
+				1AD1898D2E4FE4D4004512C2 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AD189832E4FE4D3004512C2 /* PBXTargetDependency */,
+			);
+			name = "WillPowr Watch";
+			packageProductDependencies = (
+			);
+			productName = "WillPowr Watch";
+			productReference = 1AD1897B2E4FE4D3004512C2 /* WillPowr Watch.app */;
+			productType = "com.apple.product-type.application.watchapp2-container";
+		};
+		1AD1897F2E4FE4D3004512C2 /* WillPowr Watch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AD189902E4FE4D4004512C2 /* Build configuration list for PBXNativeTarget "WillPowr Watch Watch App" */;
+			buildPhases = (
+				1AD1897C2E4FE4D3004512C2 /* Sources */,
+				1AD1897D2E4FE4D3004512C2 /* Frameworks */,
+				1AD1897E2E4FE4D3004512C2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1AD189842E4FE4D3004512C2 /* WillPowr Watch Watch App */,
+			);
+			name = "WillPowr Watch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "WillPowr Watch Watch App";
+			productReference = 1AD189802E4FE4D3004512C2 /* WillPowr Watch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -202,6 +279,12 @@
 						CreatedOnToolsVersion = 16.4;
 					};
 					1A9CB5272E4F859E00EF5A38 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					1AD1897A2E4FE4D3004512C2 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					1AD1897F2E4FE4D3004512C2 = {
 						CreatedOnToolsVersion = 16.4;
 					};
 				};
@@ -222,6 +305,8 @@
 			targets = (
 				1A7E1A7F2E2A2949002ED819 /* WillPowr */,
 				1A9CB5272E4F859E00EF5A38 /* willpowrwidgetExtension */,
+				1AD1897A2E4FE4D3004512C2 /* WillPowr Watch */,
+				1AD1897F2E4FE4D3004512C2 /* WillPowr Watch Watch App */,
 			);
 		};
 /* End PBXProject section */
@@ -235,6 +320,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1A9CB5262E4F859E00EF5A38 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AD189792E4FE4D3004512C2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AD1897E2E4FE4D3004512C2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -258,6 +357,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AD1897C2E4FE4D3004512C2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +371,11 @@
 			isa = PBXTargetDependency;
 			target = 1A9CB5272E4F859E00EF5A38 /* willpowrwidgetExtension */;
 			targetProxy = 1A9CB53C2E4F859F00EF5A38 /* PBXContainerItemProxy */;
+		};
+		1AD189832E4FE4D3004512C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1AD1897F2E4FE4D3004512C2 /* WillPowr Watch Watch App */;
+			targetProxy = 1AD189822E4FE4D3004512C2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -530,6 +641,98 @@
 			};
 			name = Release;
 		};
+		1AD1898B2E4FE4D4004512C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = EPB5476N6P;
+				INFOPLIST_KEY_CFBundleDisplayName = "WillPowr Watch";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.gill.WillPowr-Watch";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1AD1898C2E4FE4D4004512C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = EPB5476N6P;
+				INFOPLIST_KEY_CFBundleDisplayName = "WillPowr Watch";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.gill.WillPowr-Watch";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1AD1898E2E4FE4D4004512C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "WillPowr Watch Watch App/WillPowr Watch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = EPB5476N6P;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "WillPowr Watch";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.gill.WillPowr-Watch.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Debug;
+		};
+		1AD1898F2E4FE4D4004512C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "WillPowr Watch Watch App/WillPowr Watch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = EPB5476N6P;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "WillPowr Watch";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.gill.WillPowr-Watch.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -556,6 +759,24 @@
 			buildConfigurations = (
 				1A9CB5402E4F859F00EF5A38 /* Debug */,
 				1A9CB5412E4F859F00EF5A38 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AD189902E4FE4D4004512C2 /* Build configuration list for PBXNativeTarget "WillPowr Watch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AD1898E2E4FE4D4004512C2 /* Debug */,
+				1AD1898F2E4FE4D4004512C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AD189912E4FE4D4004512C2 /* Build configuration list for PBXNativeTarget "WillPowr Watch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AD1898B2E4FE4D4004512C2 /* Debug */,
+				1AD1898C2E4FE4D4004512C2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
