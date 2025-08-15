@@ -59,6 +59,15 @@
 			);
 			target = 1A9CB5272E4F859E00EF5A38 /* willpowrwidgetExtension */;
 		};
+		1A9CB54C2E4F8A2600EF5A38 /* Exceptions for "WillPowr" folder in "willpowrwidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/Habit.swift,
+				Models/HabitEntry.swift,
+				Theme/DesignTokens.swift,
+			);
+			target = 1A9CB5272E4F859E00EF5A38 /* willpowrwidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -66,6 +75,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				1A089DDC2E2E08F300638E0A /* Exceptions for "WillPowr" folder in "WillPowr" target */,
+				1A9CB54C2E4F8A2600EF5A38 /* Exceptions for "WillPowr" folder in "willpowrwidgetExtension" target */,
 			);
 			path = WillPowr;
 			sourceTree = "<group>";

@@ -12,7 +12,5 @@ import SwiftUI
 struct willpowrwidgetBundle: WidgetBundle {
     var body: some Widget {
         willpowrwidget()
-        willpowrwidgetControl()
-        willpowrwidgetLiveActivity()
     }
 }

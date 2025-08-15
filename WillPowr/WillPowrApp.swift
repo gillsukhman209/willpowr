@@ -17,17 +17,27 @@ struct WillPowrApp: App {
         ])
         
         do {
-            // Create a simple, persistent ModelContainer
-            let container = try ModelContainer(for: schema)
-            print("✅ Successfully created persistent ModelContainer")
-            
-            // Get the actual storage location
-            if let storeURL = container.configurations.first?.url {
-                print("📂 Persistent storage at: \(storeURL.path)")
-                print("📂 Storage exists: \(FileManager.default.fileExists(atPath: storeURL.path))")
-            } else {
-                print("⚠️ No storage URL found")
+            // Get the app group container URL
+            guard let containerURL = FileManager.default.containerURL(
+                forSecurityApplicationGroupIdentifier: "group.com.gill.WillPowr"
+            ) else {
+                fatalError("Failed to get app group container URL. Check your app group configuration.")
             }
+            
+            // Create the shared database URL
+            let storeURL = containerURL.appendingPathComponent("WillPowr.sqlite")
+            
+            // Create ModelContainer with shared configuration
+            let config = ModelConfiguration(
+                schema: schema,
+                url: storeURL,
+                allowsSave: true
+            )
+            
+            let container = try ModelContainer(for: schema, configurations: config)
+            print("✅ Successfully created shared ModelContainer")
+            print("📂 Shared storage at: \(storeURL.path)")
+            print("📂 Storage exists: \(FileManager.default.fileExists(atPath: storeURL.path))")
             
             return container
         } catch {
@@ -39,8 +49,13 @@ struct WillPowrApp: App {
                 
                 // Try to delete the old store and create a fresh one
                 do {
-                    let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-                    let storeURL = appSupportURL.appendingPathComponent("default.store")
+                    guard let containerURL = FileManager.default.containerURL(
+                        forSecurityApplicationGroupIdentifier: "group.com.gill.WillPowr"
+                    ) else {
+                        fatalError("Failed to get app group container URL")
+                    }
+                    
+                    let storeURL = containerURL.appendingPathComponent("WillPowr.sqlite")
                     
                     if FileManager.default.fileExists(atPath: storeURL.path) {
                         try FileManager.default.removeItem(at: storeURL)
@@ -48,8 +63,8 @@ struct WillPowrApp: App {
                     }
                     
                     // Also try to clean up any related files
-                    let storeWalURL = appSupportURL.appendingPathComponent("default.store-wal")
-                    let storeShmURL = appSupportURL.appendingPathComponent("default.store-shm")
+                    let storeWalURL = containerURL.appendingPathComponent("WillPowr.sqlite-wal")
+                    let storeShmURL = containerURL.appendingPathComponent("WillPowr.sqlite-shm")
                     
                     if FileManager.default.fileExists(atPath: storeWalURL.path) {
                         try? FileManager.default.removeItem(at: storeWalURL)
@@ -59,9 +74,14 @@ struct WillPowrApp: App {
                         try? FileManager.default.removeItem(at: storeShmURL)
                     }
                     
-                    // Create fresh container
-                    let freshContainer = try ModelContainer(for: schema)
-                    print("✅ Created fresh ModelContainer after schema migration")
+                    // Create fresh container with shared configuration
+                    let config = ModelConfiguration(
+                        schema: schema,
+                        url: storeURL,
+                        allowsSave: true
+                    )
+                    let freshContainer = try ModelContainer(for: schema, configurations: config)
+                    print("✅ Created fresh shared ModelContainer after schema migration")
                     return freshContainer
                     
                 } catch {
