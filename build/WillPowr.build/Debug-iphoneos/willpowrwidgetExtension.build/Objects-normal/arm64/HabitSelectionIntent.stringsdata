@@ -1,0 +1,96 @@
+{
+  "source": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Habit",
+        "location": {
+          "startingColumn": 71,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 23
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Habit",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose which habit to display in the widget",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Habit",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "Days to Show",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "Days to Show",
+        "location": {
+          "startingColumn": 71,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last 7 days",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last 30 days",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last 60 days",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last 90 days",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 118
+        }
+      }
+    ]
+  },
+  "version": 1
+}

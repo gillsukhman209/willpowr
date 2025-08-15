@@ -89,15 +89,41 @@ struct HabitSelectionIntent: WidgetConfigurationIntent {
     @Parameter(title: "Habit")
     var habit: HabitEntity?
     
-    @Parameter(title: "Days to Show", default: 90)
-    var daysToShow: Int
+    @Parameter(title: "Days to Show", default: DaysOption.ninety)
+    var daysToShow: DaysOption
     
     init() {
-        self.daysToShow = 90
+        self.daysToShow = .ninety
     }
     
-    init(habit: HabitEntity?, daysToShow: Int = 90) {
+    init(habit: HabitEntity?, daysToShow: DaysOption = .ninety) {
         self.habit = habit
         self.daysToShow = daysToShow
+    }
+}
+
+// MARK: - Days Option
+
+enum DaysOption: String, CaseIterable, AppEnum {
+    case seven = "7"
+    case thirty = "30"
+    case sixty = "60"
+    case ninety = "90"
+    
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Days to Show"
+    static var caseDisplayRepresentations: [DaysOption: DisplayRepresentation] = [
+        .seven: "Last 7 days",
+        .thirty: "Last 30 days", 
+        .sixty: "Last 60 days",
+        .ninety: "Last 90 days"
+    ]
+    
+    var intValue: Int {
+        switch self {
+        case .seven: return 7
+        case .thirty: return 30
+        case .sixty: return 60
+        case .ninety: return 90
+        }
     }
 }

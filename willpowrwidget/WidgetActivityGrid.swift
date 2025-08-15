@@ -14,60 +14,73 @@ struct WidgetActivityGrid: View {
     let habitData: HabitWidgetData
     let widgetFamily: WidgetFamily
     
-    // Grid configuration based on widget size
+    // Smart grid that ALWAYS fits within widget bounds
     private var gridConfig: GridConfiguration {
+        let actualDaysToShow = habitData.daysToShow
+        let weeksNeeded = (actualDaysToShow + 6) / 7 // Round up to weeks
+        
+        // Fixed dimensions based on widget size
+        let maxWidth: CGFloat
+        let maxHeight: CGFloat
+        let spacing: CGFloat = 1.5
+        
         switch widgetFamily {
         case .systemSmall:
-            return GridConfiguration(
-                cellSize: 8,
-                cellSpacing: 2,
-                daysToShow: 49, // 7x7 grid
-                weeksToShow: 7
-            )
+            maxWidth = 125
+            maxHeight = 60 // Must fit in small widget chart area
         case .systemMedium:
-            return GridConfiguration(
-                cellSize: 6,
-                cellSpacing: 1.5,
-                daysToShow: 60, // ~8.5 weeks
-                weeksToShow: 9
-            )
+            maxWidth = 300 
+            maxHeight = 80 // Must fit in medium widget chart area
         case .systemLarge:
-            return GridConfiguration(
-                cellSize: 10,
-                cellSpacing: 2,
-                daysToShow: 90, // ~13 weeks
-                weeksToShow: 13
-            )
+            maxWidth = 320
+            maxHeight = 120 // Must fit in large widget chart area
         default:
-            return GridConfiguration(
-                cellSize: 8,
-                cellSpacing: 2,
-                daysToShow: 49,
-                weeksToShow: 7
-            )
+            maxWidth = 125
+            maxHeight = 60
         }
+        
+        // Calculate cell size constrained by BOTH width and height
+        let maxCellHeight = (maxHeight - (6 * spacing)) / 7 // 7 rows (days of week)
+        let maxCellWidth = (maxWidth - (CGFloat(weeksNeeded - 1) * spacing)) / CGFloat(weeksNeeded)
+        
+        // Use the smaller constraint to ensure grid fits
+        let constrainedCellSize = min(max(4, maxCellWidth), max(4, maxCellHeight))
+        
+        // Final check: ensure we can show all requested weeks
+        let actualWeeksToShow = min(weeksNeeded, Int(maxWidth / (constrainedCellSize + spacing)))
+        
+        return GridConfiguration(
+            cellSize: constrainedCellSize,
+            cellSpacing: spacing,
+            daysToShow: actualDaysToShow,
+            weeksToShow: max(1, actualWeeksToShow) // At least 1 week
+        )
     }
     
     var body: some View {
         VStack(spacing: 0) {
             if widgetFamily == .systemLarge {
-                // Month labels for large widget
+                // Month labels for large widget only
                 monthLabels
                     .padding(.bottom, 4)
             }
             
             HStack(alignment: .top, spacing: gridConfig.cellSpacing) {
                 if widgetFamily == .systemLarge {
-                    // Day labels for large widget
+                    // Day labels for large widget only
                     dayLabels
                 }
                 
-                // Activity grid
-                activityGrid
+                // Activity grid - MAIN FOCUS (constrained and centered)
+                HStack {
+                    Spacer()
+                    activityGrid
+                    Spacer()
+                }
             }
             
-            if widgetFamily != .systemSmall {
-                // Legend for medium and large widgets
+            if widgetFamily == .systemLarge {
+                // Legend only for large widgets (medium focuses on chart)
                 legend
                     .padding(.top, 6)
             }
@@ -122,19 +135,14 @@ struct WidgetActivityGrid: View {
                 VStack(spacing: gridConfig.cellSpacing) {
                     ForEach(0..<7, id: \.self) { dayIndex in
                         if let activity = getActivity(weekIndex: weekIndex, dayIndex: dayIndex) {
-                            RoundedRectangle(cornerRadius: gridConfig.cellSize > 8 ? 2 : 1)
-                                .fill(activity.activityLevel.color(for: habitData.habitType))
+                            // HabitKit-style rounded rectangle
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(activity.activityLevel.habitKitColor(for: habitData.habitType))
                                 .frame(width: gridConfig.cellSize, height: gridConfig.cellSize)
-                                .overlay(
-                                    // Today indicator
-                                    Calendar.current.isDateInToday(activity.date) ?
-                                    RoundedRectangle(cornerRadius: gridConfig.cellSize > 8 ? 2 : 1)
-                                        .stroke(Color.white, lineWidth: 1)
-                                    : nil
-                                )
                         } else {
-                            RoundedRectangle(cornerRadius: gridConfig.cellSize > 8 ? 2 : 1)
-                                .fill(Color.white.opacity(0.03))
+                            // Empty state - very subtle
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color.white.opacity(0.02))
                                 .frame(width: gridConfig.cellSize, height: gridConfig.cellSize)
                         }
                     }
@@ -153,8 +161,8 @@ struct WidgetActivityGrid: View {
             
             HStack(spacing: 2) {
                 ForEach(Array([ActivityLevel.none, .low, .medium, .high, .complete].enumerated()), id: \.offset) { index, level in
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(level.color(for: habitData.habitType))
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(level.habitKitColor(for: habitData.habitType))
                         .frame(width: 8, height: 8)
                 }
             }
@@ -185,9 +193,9 @@ struct WidgetActivityGrid: View {
         let calendar = Calendar.current
         let today = Date()
         
-        // Calculate the date for this cell
-        let totalDaysAgo = gridConfig.daysToShow - (weekIndex * 7 + dayIndex) - 1
-        guard totalDaysAgo >= 0,
+        // Calculate days from the most recent (prioritize recent days when space is limited)
+        let totalDaysAgo = weekIndex * 7 + dayIndex
+        guard totalDaysAgo < gridConfig.daysToShow,
               let date = calendar.date(byAdding: .day, value: -totalDaysAgo, to: today) else {
             return nil
         }

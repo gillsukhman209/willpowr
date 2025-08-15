@@ -1,0 +1,64 @@
+{
+  "source": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/WidgetActivityGrid.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Less",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "More",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 170
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld days",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 182
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 270
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "Todo",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 298
+        }
+      }
+    ]
+  },
+  "version": 1
+}

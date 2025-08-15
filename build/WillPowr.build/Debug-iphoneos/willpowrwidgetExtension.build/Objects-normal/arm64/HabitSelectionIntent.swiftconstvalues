@@ -1,0 +1,866 @@
+[
+  {
+    "typeName": "willpowrwidgetExtension.HabitEntity",
+    "mangledTypeName": "23willpowrwidgetExtension11HabitEntityV",
+    "kind": "struct",
+    "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+    "line": 14,
+    "conformances": [
+      "AppIntents.AppEntity",
+      "AppIntents.AppValue",
+      "AppIntents.DisplayRepresentable",
+      "Swift.Identifiable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.InstanceDisplayRepresentable",
+      "Foundation.CustomLocalizedStringResourceConvertible"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.AppEntity",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.DisplayRepresentable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.InstanceDisplayRepresentable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "DefaultQuery",
+        "substitutedTypeName": "willpowrwidgetExtension.HabitEntityQuery",
+        "substitutedMangledTypeName": "23willpowrwidgetExtension16HabitEntityQueryV"
+      },
+      {
+        "typeAliasName": "ID",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      },
+      {
+        "typeAliasName": "ValueType",
+        "substitutedTypeName": "willpowrwidgetExtension.HabitEntity",
+        "substitutedMangledTypeName": "23willpowrwidgetExtension11HabitEntityV"
+      },
+      {
+        "typeAliasName": "UnwrappedType",
+        "substitutedTypeName": "willpowrwidgetExtension.HabitEntity",
+        "substitutedMangledTypeName": "23willpowrwidgetExtension11HabitEntityV"
+      },
+      {
+        "typeAliasName": "Specification",
+        "substitutedTypeName": "AppIntents.EmptyResolverSpecification<willpowrwidgetExtension.HabitEntity>",
+        "substitutedMangledTypeName": "10AppIntents26EmptyResolverSpecificationVy23willpowrwidgetExtension11HabitEntityVG"
+      }
+    ],
+    "properties": [
+      {
+        "label": "id",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 15,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "name",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 16,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "iconName",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 17,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "typeDisplayRepresentation",
+        "type": "AppIntents.TypeDisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 19,
+        "valueKind": "RawLiteral",
+        "value": "Habit"
+      },
+      {
+        "label": "defaultQuery",
+        "type": "willpowrwidgetExtension.HabitEntityQuery",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 20,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "willpowrwidgetExtension.HabitEntityQuery",
+          "arguments": []
+        }
+      },
+      {
+        "label": "displayRepresentation",
+        "type": "AppIntents.DisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 22,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.DisplayRepresentation",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "InterpolatedStringLiteral",
+              "value": {
+                "segments": [
+                  {
+                    "valueKind": "RawLiteral",
+                    "value": ""
+                  },
+                  {
+                    "valueKind": "Runtime"
+                  },
+                  {
+                    "valueKind": "RawLiteral",
+                    "value": ""
+                  }
+                ]
+              }
+            },
+            {
+              "label": "subtitle",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "image",
+              "type": "Swift.Optional<AppIntents.DisplayRepresentation.Image>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "typeName": "willpowrwidgetExtension.HabitEntityQuery",
+    "mangledTypeName": "23willpowrwidgetExtension16HabitEntityQueryV",
+    "kind": "struct",
+    "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+    "line": 29,
+    "conformances": [
+      "AppIntents.EntityQuery",
+      "AppIntents.DynamicOptionsProvider",
+      "AppIntents.PersistentlyIdentifiable",
+      "Swift.Sendable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.BitwiseCopyable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.EntityQuery",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.DynamicOptionsProvider",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "Entity",
+        "substitutedTypeName": "willpowrwidgetExtension.HabitEntity",
+        "substitutedMangledTypeName": "23willpowrwidgetExtension11HabitEntityV"
+      },
+      {
+        "typeAliasName": "Result",
+        "substitutedTypeName": "Swift.Array<willpowrwidgetExtension.HabitEntity>",
+        "substitutedMangledTypeName": "Say23willpowrwidgetExtension11HabitEntityVG"
+      },
+      {
+        "typeAliasName": "Result",
+        "substitutedTypeName": "Swift.Array<willpowrwidgetExtension.HabitEntity>",
+        "substitutedMangledTypeName": "Say23willpowrwidgetExtension11HabitEntityVG"
+      },
+      {
+        "typeAliasName": "DefaultValue",
+        "substitutedTypeName": "willpowrwidgetExtension.HabitEntity",
+        "substitutedMangledTypeName": "23willpowrwidgetExtension11HabitEntityV"
+      }
+    ],
+    "properties": []
+  },
+  {
+    "typeName": "willpowrwidgetExtension.HabitSelectionIntent",
+    "mangledTypeName": "23willpowrwidgetExtension20HabitSelectionIntentV",
+    "kind": "struct",
+    "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+    "line": 85,
+    "conformances": [
+      "AppIntents.WidgetConfigurationIntent",
+      "AppIntents.AppIntent",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.Sendable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.WidgetConfigurationIntent",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.AppIntent",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "NeverResult",
+        "substitutedTypeName": "Swift.Never",
+        "substitutedMangledTypeName": "s5NeverO"
+      },
+      {
+        "typeAliasName": "PerformResult",
+        "substitutedTypeName": "Swift.Never",
+        "substitutedMangledTypeName": "s5NeverO"
+      },
+      {
+        "typeAliasName": "SummaryContent",
+        "substitutedTypeName": "some AppIntents.ParameterSummary",
+        "substitutedMangledTypeName": "10AppIntents0A6IntentPAAE16parameterSummaryQrvpZQOy23willpowrwidgetExtension014HabitSelectionC0V_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ParameterSummary"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      }
+    ],
+    "properties": [
+      {
+        "label": "_habit",
+        "type": "AppIntents.IntentParameter<Swift.Optional<willpowrwidgetExtension.HabitEntity>>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 90,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<Swift.Optional<willpowrwidgetExtension.HabitEntity>>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Habit"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<willpowrwidgetExtension.HabitEntity>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        }
+      },
+      {
+        "label": "_daysToShow",
+        "type": "AppIntents.IntentParameter<willpowrwidgetExtension.DaysOption>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 93,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<willpowrwidgetExtension.DaysOption>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Days to Show"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<willpowrwidgetExtension.DaysOption>",
+              "valueKind": "Enum",
+              "value": {
+                "name": "ninety"
+              }
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            },
+            {
+              "label": "supportedValues",
+              "type": "Swift.Array<willpowrwidgetExtension.DaysOption>",
+              "valueKind": "Runtime"
+            }
+          ]
+        }
+      },
+      {
+        "label": "title",
+        "type": "Foundation.LocalizedStringResource",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 86,
+        "valueKind": "RawLiteral",
+        "value": "Select Habit"
+      },
+      {
+        "label": "description",
+        "type": "AppIntents.IntentDescription",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 87,
+        "valueKind": "RawLiteral",
+        "value": "Choose which habit to display in the widget"
+      },
+      {
+        "label": "habit",
+        "type": "Swift.Optional<willpowrwidgetExtension.HabitEntity>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 90,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<Swift.Optional<willpowrwidgetExtension.HabitEntity>>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Habit"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<willpowrwidgetExtension.HabitEntity>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            }
+          ]
+        },
+        "propertyWrappers": [
+          {
+            "type": "AppIntents.IntentParameter",
+            "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+            "line": 89,
+            "arguments": [
+              {
+                "label": "title",
+                "type": "Foundation.LocalizedStringResource",
+                "valueKind": "RawLiteral",
+                "value": "Habit"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "$habit",
+        "type": "AppIntents.IntentParameter<Swift.Optional<willpowrwidgetExtension.HabitEntity>>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 90,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "daysToShow",
+        "type": "willpowrwidgetExtension.DaysOption",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 93,
+        "valueKind": "InitCall",
+        "value": {
+          "type": "AppIntents.IntentParameter<willpowrwidgetExtension.DaysOption>",
+          "arguments": [
+            {
+              "label": "title",
+              "type": "Foundation.LocalizedStringResource",
+              "valueKind": "RawLiteral",
+              "value": "Days to Show"
+            },
+            {
+              "label": "description",
+              "type": "Swift.Optional<Foundation.LocalizedStringResource>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "default",
+              "type": "Swift.Optional<willpowrwidgetExtension.DaysOption>",
+              "valueKind": "Enum",
+              "value": {
+                "name": "ninety"
+              }
+            },
+            {
+              "label": "requestValueDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "requestDisambiguationDialog",
+              "type": "Swift.Optional<AppIntents.IntentDialog>",
+              "valueKind": "RawLiteral",
+              "value": "nil"
+            },
+            {
+              "label": "inputConnectionBehavior",
+              "type": "AppIntents.InputConnectionBehavior",
+              "valueKind": "Runtime"
+            },
+            {
+              "label": "supportedValues",
+              "type": "Swift.Array<willpowrwidgetExtension.DaysOption>",
+              "valueKind": "Runtime"
+            }
+          ]
+        },
+        "propertyWrappers": [
+          {
+            "type": "AppIntents.IntentParameter",
+            "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+            "line": 92,
+            "arguments": [
+              {
+                "label": "title",
+                "type": "Foundation.LocalizedStringResource",
+                "valueKind": "RawLiteral",
+                "value": "Days to Show"
+              },
+              {
+                "label": "default",
+                "type": "Swift.Optional<willpowrwidgetExtension.DaysOption>",
+                "valueKind": "Enum",
+                "value": {
+                  "name": "ninety"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "$daysToShow",
+        "type": "AppIntents.IntentParameter<willpowrwidgetExtension.DaysOption>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 93,
+        "valueKind": "Runtime"
+      }
+    ]
+  },
+  {
+    "typeName": "willpowrwidgetExtension.DaysOption",
+    "mangledTypeName": "23willpowrwidgetExtension10DaysOptionO",
+    "kind": "enum",
+    "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+    "line": 107,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.RawRepresentable",
+      "Swift.CaseIterable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.CaseDisplayRepresentable",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.BitwiseCopyable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "willpowrwidgetExtension"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      },
+      {
+        "typeAliasName": "AllCases",
+        "substitutedTypeName": "Swift.Array<willpowrwidgetExtension.DaysOption>",
+        "substitutedMangledTypeName": "Say23willpowrwidgetExtension10DaysOptionOG"
+      },
+      {
+        "typeAliasName": "ValueType",
+        "substitutedTypeName": "willpowrwidgetExtension.DaysOption",
+        "substitutedMangledTypeName": "23willpowrwidgetExtension10DaysOptionO"
+      },
+      {
+        "typeAliasName": "UnwrappedType",
+        "substitutedTypeName": "willpowrwidgetExtension.DaysOption",
+        "substitutedMangledTypeName": "23willpowrwidgetExtension10DaysOptionO"
+      },
+      {
+        "typeAliasName": "Specification",
+        "substitutedTypeName": "some AppIntents.ResolverSpecification",
+        "substitutedMangledTypeName": "10AppIntents0A4EnumPAAE28defaultResolverSpecificationQrvpZQOy23willpowrwidgetExtension10DaysOptionO_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ResolverSpecification"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      }
+    ],
+    "properties": [
+      {
+        "label": "typeDisplayRepresentation",
+        "type": "AppIntents.TypeDisplayRepresentation",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 113,
+        "valueKind": "RawLiteral",
+        "value": "Days to Show"
+      },
+      {
+        "label": "caseDisplayRepresentations",
+        "type": "Swift.Dictionary<willpowrwidgetExtension.DaysOption, AppIntents.DisplayRepresentation>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 114,
+        "valueKind": "Dictionary",
+        "value": [
+          {
+            "key": {
+              "valueKind": "Enum",
+              "value": {
+                "name": "seven"
+              }
+            },
+            "value": {
+              "valueKind": "RawLiteral",
+              "value": "Last 7 days"
+            }
+          },
+          {
+            "key": {
+              "valueKind": "Enum",
+              "value": {
+                "name": "thirty"
+              }
+            },
+            "value": {
+              "valueKind": "RawLiteral",
+              "value": "Last 30 days"
+            }
+          },
+          {
+            "key": {
+              "valueKind": "Enum",
+              "value": {
+                "name": "sixty"
+              }
+            },
+            "value": {
+              "valueKind": "RawLiteral",
+              "value": "Last 60 days"
+            }
+          },
+          {
+            "key": {
+              "valueKind": "Enum",
+              "value": {
+                "name": "ninety"
+              }
+            },
+            "value": {
+              "valueKind": "RawLiteral",
+              "value": "Last 90 days"
+            }
+          }
+        ]
+      },
+      {
+        "label": "intValue",
+        "type": "Swift.Int",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift",
+        "line": 121,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "allCases",
+        "type": "Swift.Array<willpowrwidgetExtension.DaysOption>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "valueKind": "Array",
+        "value": [
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "seven"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "thirty"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "sixty"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "ninety"
+            }
+          }
+        ]
+      },
+      {
+        "label": "rawValue",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "valueKind": "Runtime"
+      }
+    ],
+    "cases": [
+      {
+        "name": "seven",
+        "rawValue": "7"
+      },
+      {
+        "name": "thirty",
+        "rawValue": "30"
+      },
+      {
+        "name": "sixty",
+        "rawValue": "60"
+      },
+      {
+        "name": "ninety",
+        "rawValue": "90"
+      }
+    ]
+  }
+]

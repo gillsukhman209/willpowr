@@ -1,0 +1,104 @@
+{
+  "source": "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/willpowrwidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 161
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last %lld days",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 241
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 220
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last %lld days",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 328
+        }
+      },
+      {
+        "comment": "",
+        "key": "current",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "best",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select a Habit",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 345
+        }
+      },
+      {
+        "comment": "",
+        "key": "Long press to configure",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "Habit Activity Chart",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 439
+        }
+      },
+      {
+        "comment": "",
+        "key": "Track your habit progress with a visual activity chart",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 440
+        }
+      }
+    ]
+  },
+  "version": 1
+}

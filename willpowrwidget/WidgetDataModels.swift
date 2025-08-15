@@ -110,6 +110,26 @@ enum ActivityLevel: Hashable {
                 Color.blue.opacity(0.85) : Color.green.opacity(0.85)
         }
     }
+    
+    // HabitKit-style vibrant colors with better contrast
+    func habitKitColor(for habitType: HabitType) -> Color {
+        switch self {
+        case .none:
+            return Color.white.opacity(0.03)
+        case .low:
+            return habitType == .build ? 
+                Color.blue.opacity(0.4) : Color.red.opacity(0.4)
+        case .medium:
+            return habitType == .build ? 
+                Color.blue.opacity(0.6) : Color.orange.opacity(0.6)
+        case .high:
+            return habitType == .build ? 
+                Color.blue.opacity(0.8) : Color.yellow.opacity(0.8)
+        case .complete:
+            return habitType == .build ? 
+                Color.blue : Color.green
+        }
+    }
 }
 
 // MARK: - Widget Data Provider
@@ -119,7 +139,7 @@ class WidgetDataProvider {
     
     private init() {}
     
-    func fetchHabitData(for habitId: String?) -> HabitWidgetData? {
+    func fetchHabitData(for habitId: String?, daysToShow: Int = 90) -> HabitWidgetData? {
         guard let habitId = habitId else { return nil }
         
         // Use a synchronous approach for widget data
@@ -155,8 +175,8 @@ class WidgetDataProvider {
                 return
             }
             
-            // Generate activity data for the last N days
-            let activityData = generateActivityData(for: habit, days: 90)
+            // Generate activity data for the specified number of days
+            let activityData = generateActivityData(for: habit, days: daysToShow)
             
             result = HabitWidgetData(
                 id: habit.id.uuidString,
@@ -171,7 +191,7 @@ class WidgetDataProvider {
                 goalUnit: habit.goalUnit,
                 currentProgress: habit.currentProgress,
                 activityData: activityData,
-                daysToShow: 90
+                daysToShow: daysToShow
             )
         }
         

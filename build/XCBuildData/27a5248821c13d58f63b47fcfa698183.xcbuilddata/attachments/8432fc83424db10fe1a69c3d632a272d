@@ -1,0 +1,98 @@
+{
+  "" : {
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetExtension-master.dia",
+    "emit-module-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetExtension-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetExtension-master-emit-module.dia",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetExtension-master.swiftdeps"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/WillPowr/Models/Habit.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/Habit.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/Habit.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/Habit.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/Habit.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/Habit.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/Habit.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/Habit.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/Habit~partial.swiftmodule"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/WillPowr/Models/HabitEntry.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitEntry.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitEntry.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitEntry.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitEntry.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitEntry.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitEntry.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitEntry.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitEntry~partial.swiftmodule"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/WillPowr/Theme/DesignTokens.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/DesignTokens.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/DesignTokens.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/DesignTokens.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/DesignTokens.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/DesignTokens.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/DesignTokens.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/DesignTokens.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/DesignTokens~partial.swiftmodule"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/HabitSelectionIntent.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitSelectionIntent.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitSelectionIntent.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitSelectionIntent.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitSelectionIntent.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitSelectionIntent.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitSelectionIntent.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitSelectionIntent.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/HabitSelectionIntent~partial.swiftmodule"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/WidgetActivityGrid.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetActivityGrid.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetActivityGrid.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetActivityGrid.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetActivityGrid.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetActivityGrid.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetActivityGrid.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetActivityGrid.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetActivityGrid~partial.swiftmodule"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/WidgetDataModels.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetDataModels.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetDataModels.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetDataModels.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetDataModels.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetDataModels.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetDataModels.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetDataModels.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/WidgetDataModels~partial.swiftmodule"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/willpowrwidget.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidget.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidget.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidget.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidget.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidget.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidget.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidget.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidget~partial.swiftmodule"
+  },
+  "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/willpowrwidget/willpowrwidgetBundle.swift" : {
+    "const-values" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetBundle.swiftconstvalues",
+    "dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetBundle.d",
+    "diagnostics" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetBundle.dia",
+    "index-unit-output-path" : "/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetBundle.o",
+    "llvm-bc" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetBundle.bc",
+    "object" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetBundle.o",
+    "swift-dependencies" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetBundle.swiftdeps",
+    "swiftmodule" : "/Users/sukhmansingh/Desktop/Coding/2025/swiftui/WillPowr/build/WillPowr.build/Debug-iphoneos/willpowrwidgetExtension.build/Objects-normal/arm64/willpowrwidgetBundle~partial.swiftmodule"
+  }
+}

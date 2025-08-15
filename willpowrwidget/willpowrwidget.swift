@@ -29,10 +29,12 @@ struct HabitProvider: AppIntentTimelineProvider {
             daysToShow: 90
         )
         
+        let config = HabitSelectionIntent()
+        config.daysToShow = .ninety
         return HabitWidgetEntry(
             date: Date(),
             habitData: placeholderData,
-            configuration: HabitSelectionIntent()
+            configuration: config
         )
     }
     
@@ -41,10 +43,11 @@ struct HabitProvider: AppIntentTimelineProvider {
             return placeholder(in: context)
         }
         
-        let habitData = WidgetDataProvider.shared.fetchHabitData(for: configuration.habit?.id)
+        let daysToShow = configuration.daysToShow.intValue
+        let habitData = WidgetDataProvider.shared.fetchHabitData(for: configuration.habit?.id, daysToShow: daysToShow)
         return HabitWidgetEntry(
             date: Date(),
-            habitData: habitData ?? generateSampleData(),
+            habitData: habitData ?? generateSampleData(daysToShow: daysToShow),
             configuration: configuration
         )
     }
@@ -53,8 +56,9 @@ struct HabitProvider: AppIntentTimelineProvider {
         var entries: [HabitWidgetEntry] = []
         let currentDate = Date()
         
-        // Fetch habit data
-        let habitData = WidgetDataProvider.shared.fetchHabitData(for: configuration.habit?.id)
+        // Fetch habit data with configured days
+        let daysToShow = configuration.daysToShow.intValue
+        let habitData = WidgetDataProvider.shared.fetchHabitData(for: configuration.habit?.id, daysToShow: daysToShow)
         
         // Create entries for the next 24 hours, updating every hour
         for hourOffset in 0..<24 {
@@ -90,7 +94,7 @@ struct HabitProvider: AppIntentTimelineProvider {
         return activities.reversed()
     }
     
-    private func generateSampleData() -> HabitWidgetData {
+    private func generateSampleData(daysToShow: Int = 90) -> HabitWidgetData {
         return HabitWidgetData(
             id: "sample",
             name: "Exercise",
@@ -104,7 +108,7 @@ struct HabitProvider: AppIntentTimelineProvider {
             goalUnit: .minutes,
             currentProgress: 15,
             activityData: generatePlaceholderActivity(),
-            daysToShow: 90
+            daysToShow: daysToShow
         )
     }
 }
@@ -139,56 +143,49 @@ struct SmallHabitWidget: View {
     let habitData: HabitWidgetData
     
     var body: some View {
-        VStack(spacing: 10) {
-                // Header with habit name and icon
-                HStack(spacing: 6) {
-                    Image(systemName: habitData.iconName)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(habitData.habitType == .build ? .blue : .red)
-                    
-                    Text(habitData.name)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
-                    
-                    Spacer()
-                }
+        VStack(spacing: 0) {
+            // Clean minimal header
+            HStack {
+                Text(habitData.name)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
                 
-                // Mini activity grid
+                Spacer()
+                
+                // Streak with flame
+                HStack(spacing: 2) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 9))
+                        .foregroundColor(.orange)
+                    Text("\(habitData.streak)")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.orange)
+                }
+            }
+            .padding(.bottom, 6)
+            
+            // MAIN FOCUS: Activity Chart with controlled size
+            HStack {
+                Spacer()
                 WidgetActivityGrid(
                     habitData: habitData,
                     widgetFamily: .systemSmall
                 )
-                .frame(maxHeight: 60)
-                
-                Spacer(minLength: 0)
-                
-                // Bottom stats
-                HStack {
-                    // Streak
-                    HStack(spacing: 3) {
-                        Image(systemName: "flame.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(.orange)
-                        Text("\(habitData.streak)")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    
-                    Spacer()
-                    
-                    // Status
-                    HStack(spacing: 3) {
-                        Image(systemName: habitData.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 11))
-                            .foregroundColor(habitData.isCompletedToday ? .green : .orange)
-                        Text(habitData.isCompletedToday ? "Done" : "Todo")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(habitData.isCompletedToday ? .green : .orange)
-                    }
-                }
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, idealHeight: 60, maxHeight: 60) // Fixed height for small widget
+            
+            Spacer(minLength: 2)
+            
+            // Completion indicator (subtle)
+            if habitData.isCompletedToday {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(.green)
+            }
         }
-        .padding(12)
+        .padding(10) // Professional margins for small widget
     }
 }
 
@@ -198,74 +195,54 @@ struct MediumHabitWidget: View {
     let habitData: HabitWidgetData
     
     var body: some View {
-        HStack(spacing: 16) {
-                // Left side - Info
-                VStack(alignment: .leading, spacing: 12) {
-                    // Habit name with icon
-                    HStack(spacing: 6) {
-                        Image(systemName: habitData.iconName)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(habitData.habitType == .build ? .blue : .red)
-                        
-                        Text(habitData.name)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-                    }
+        VStack(spacing: 0) {
+            // Professional header with proper hierarchy
+            HStack {
+                // Left: Habit name with icon
+                HStack(spacing: 5) {
+                    Image(systemName: habitData.iconName)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(habitData.habitType == .build ? .blue : .red)
                     
-                    // Stats
-                    VStack(alignment: .leading, spacing: 6) {
-                        // Streak
-                        HStack(spacing: 6) {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(.orange)
-                            Text("\(habitData.streak) day streak")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white)
-                        }
-                        
-                        // Progress
-                        if habitData.goalUnit != .none {
-                            HStack(spacing: 6) {
-                                ProgressBar(progress: habitData.progressPercentage)
-                                    .frame(width: 80, height: 4)
-                                Text("\(Int(habitData.progressPercentage * 100))%")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.7))
-                            }
-                        }
-                        
-                        // Status
-                        HStack(spacing: 4) {
-                            Image(systemName: habitData.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                                .font(.system(size: 12))
-                                .foregroundColor(habitData.isCompletedToday ? .green : .orange)
-                            Text(habitData.isCompletedToday ? "Completed today" : "Pending today")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(habitData.isCompletedToday ? .green : .orange)
-                        }
-                    }
-                    
-                    Spacer()
+                    Text(habitData.name)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // Right side - Activity grid
-                VStack(alignment: .trailing, spacing: 6) {
-                    Text("Last 60 days")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.white.opacity(0.5))
-                    
-                    WidgetActivityGrid(
-                        habitData: habitData,
-                        widgetFamily: .systemMedium
-                    )
-                    
-                    Spacer()
+                Spacer()
+                
+                // Right: Streak with flame
+                HStack(spacing: 4) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.orange)
+                    Text("\(habitData.streak)")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.orange)
                 }
+            }
+            .padding(.bottom, 8)
+            
+            // MAIN FOCUS: Activity Chart with controlled height
+            HStack {
+                Spacer()
+                WidgetActivityGrid(
+                    habitData: habitData,
+                    widgetFamily: .systemMedium
+                )
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, idealHeight: 80, maxHeight: 80) // Fixed height to preserve header/footer
+            
+            Spacer(minLength: 4)
+            
+            // Subtle footer
+            Text("Last \(habitData.daysToShow) days")
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(.white.opacity(0.5))
         }
-        .padding()
+        .padding(12) // Professional margins
     }
 }
 
@@ -275,93 +252,84 @@ struct LargeHabitWidget: View {
     let habitData: HabitWidgetData
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-                // Header
-                HStack {
-                    // Habit info
-                    HStack(spacing: 8) {
-                        Image(systemName: habitData.iconName)
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(habitData.habitType == .build ? .blue : .red)
-                        
-                        Text(habitData.name)
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        // Type badge
-                        Text(habitData.habitType == .build ? "BUILD" : "QUIT")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(
-                                Capsule()
-                                    .fill(habitData.habitType == .build ? 
-                                         Color.blue.opacity(0.3) : Color.red.opacity(0.3))
-                            )
-                    }
-                }
-                
-                // Stats row
-                HStack(spacing: 20) {
-                    // Current streak
-                    StatCard(
-                        icon: "flame.fill",
-                        iconColor: .orange,
-                        title: "Current",
-                        value: "\(habitData.streak)",
-                        subtitle: "days"
-                    )
+        VStack(spacing: 0) {
+            // Professional header with clear hierarchy
+            HStack {
+                // Left: Habit name with icon
+                HStack(spacing: 6) {
+                    Image(systemName: habitData.iconName)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(habitData.habitType == .build ? .blue : .red)
                     
-                    // Best streak
-                    StatCard(
-                        icon: "trophy.fill",
-                        iconColor: .yellow,
-                        title: "Best",
-                        value: "\(habitData.longestStreak)",
-                        subtitle: "days"
-                    )
-                    
-                    // Today's progress
-                    if habitData.goalUnit != .none {
-                        StatCard(
-                            icon: "target",
-                            iconColor: .green,
-                            title: "Progress",
-                            value: "\(Int(habitData.progressPercentage * 100))%",
-                            subtitle: habitData.displayProgress
-                        )
-                    }
-                    
-                    // Status
-                    StatCard(
-                        icon: habitData.isCompletedToday ? "checkmark.circle.fill" : "circle",
-                        iconColor: habitData.isCompletedToday ? .green : .orange,
-                        title: "Today",
-                        value: habitData.isCompletedToday ? "Done" : "Todo",
-                        subtitle: nil
-                    )
-                    
-                    Spacer()
-                }
-                
-                // Activity grid
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Activity Overview - Last 90 days")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.8))
-                    
-                    WidgetActivityGrid(
-                        habitData: habitData,
-                        widgetFamily: .systemLarge
-                    )
+                    Text(habitData.name)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
                 }
                 
                 Spacer()
+                
+                // Right: Essential stats in clean layout
+                HStack(spacing: 15) {
+                    // Current streak
+                    VStack(alignment: .trailing, spacing: 2) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.orange)
+                            Text("\(habitData.streak)")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.orange)
+                        }
+                        Text("current")
+                            .font(.system(size: 8))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    
+                    // Best streak
+                    VStack(alignment: .trailing, spacing: 2) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "trophy.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.yellow)
+                            Text("\(habitData.longestStreak)")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.yellow)
+                        }
+                        Text("best")
+                            .font(.system(size: 8))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    
+                    // Today status
+                    if habitData.isCompletedToday {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.green)
+                    }
+                }
+            }
+            .padding(.bottom, 12)
+            
+            // MAIN FOCUS: Activity Chart with controlled proportions
+            HStack {
+                Spacer()
+                WidgetActivityGrid(
+                    habitData: habitData,
+                    widgetFamily: .systemLarge
+                )
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, idealHeight: 120, maxHeight: 120) // Fixed height for proper layout
+            
+            Spacer(minLength: 6)
+            
+            // Clean footer
+            Text("Last \(habitData.daysToShow) days")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.white.opacity(0.5))
         }
-        .padding()
+        .padding(14) // Professional margins for large widget
     }
 }
 
@@ -494,7 +462,7 @@ struct willpowrwidget: Widget {
         activityData: [],
         daysToShow: 49
     )
-    HabitWidgetEntry(date: .now, habitData: sampleData, configuration: HabitSelectionIntent())
+    HabitWidgetEntry(date: .now, habitData: sampleData, configuration: HabitSelectionIntent(habit: nil, daysToShow: .thirty))
 }
 
 #Preview(as: .systemMedium) {
@@ -515,7 +483,7 @@ struct willpowrwidget: Widget {
         activityData: [],
         daysToShow: 60
     )
-    HabitWidgetEntry(date: .now, habitData: sampleData, configuration: HabitSelectionIntent())
+    HabitWidgetEntry(date: .now, habitData: sampleData, configuration: HabitSelectionIntent(habit: nil, daysToShow: .thirty))
 }
 
 #Preview(as: .systemLarge) {
@@ -536,5 +504,5 @@ struct willpowrwidget: Widget {
         activityData: [],
         daysToShow: 90
     )
-    HabitWidgetEntry(date: .now, habitData: sampleData, configuration: HabitSelectionIntent())
+    HabitWidgetEntry(date: .now, habitData: sampleData, configuration: HabitSelectionIntent(habit: nil, daysToShow: .thirty))
 }
